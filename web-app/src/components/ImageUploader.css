@@ -1,0 +1,114 @@
+.image-uploader {
+  margin-bottom: 2rem;
+}
+
+.image-uploader h3 {
+  margin: 0 0 1rem 0;
+  color: #374151;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.upload-area {
+  border: 2px dashed #d1d5db;
+  border-radius: 12px;
+  padding: 3rem 2rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: #f9fafb;
+}
+
+.upload-area:hover {
+  border-color: #667eea;
+  background: #f0f4ff;
+}
+
+.upload-area.drag-over {
+  border-color: #667eea;
+  background: #eef2ff;
+  transform: scale(1.02);
+}
+
+.upload-icon {
+  margin-bottom: 1rem;
+}
+
+.upload-icon svg {
+  width: 48px;
+  height: 48px;
+  color: #9ca3af;
+  transition: color 0.2s ease;
+}
+
+.upload-area:hover .upload-icon svg,
+.upload-area.drag-over .upload-icon svg {
+  color: #667eea;
+}
+
+.upload-text {
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: #374151;
+  margin: 0 0 0.5rem 0;
+}
+
+.upload-hint {
+  font-size: 0.9rem;
+  color: #6b7280;
+  margin: 0;
+}
+
+.processing {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: #667eea;
+}
+
+.processing .spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid rgba(102, 126, 234, 0.3);
+  border-top: 3px solid #667eea;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+.processing p {
+  margin: 0;
+  font-weight: 500;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .upload-area {
+    padding: 2rem 1.5rem;
+  }
+  
+  .upload-icon svg {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .upload-text {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .upload-area {
+    padding: 1.5rem 1rem;
+  }
+  
+  .upload-icon svg {
+    width: 36px;
+    height: 36px;
+  }
+}

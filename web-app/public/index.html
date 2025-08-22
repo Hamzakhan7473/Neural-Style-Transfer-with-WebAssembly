@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#667eea" />
+    <meta name="description" content="Neural Style Transfer web app powered by Rust, WebAssembly, and WebGPU" />
+    <meta name="keywords" content="neural style transfer, AI, WebAssembly, Rust, WebGPU, image processing" />
+    <meta name="author" content="Neural Style Transfer Team" />
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
+    
+    <!-- Apple Touch Icons -->
+    <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
+    
+    <!-- Preload WASM files -->
+    <link rel="preload" href="%PUBLIC_URL%/wasm/neural_style_transfer_core_bg.wasm" as="fetch" crossorigin="anonymous" />
+    <link rel="preload" href="%PUBLIC_URL%/wasm/neural_style_transfer_core.js" as="script" />
+    
+    <!-- Preload critical styles -->
+    <link rel="preload" href="%PUBLIC_URL%/static/css/main.css" as="style" />
+    
+    <title>Neural Style Transfer - AI-Powered Image Transformation</title>
+    
+    <style>
+      /* Critical CSS for loading state */
+      body {
+        margin: 0;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      
+      .loading-screen {
+        text-align: center;
+        color: white;
+      }
+      
+      .loading-screen h1 {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+      }
+      
+      .loading-screen p {
+        font-size: 1.1rem;
+        margin-bottom: 2rem;
+        opacity: 0.9;
+      }
+      
+      .spinner {
+        width: 60px;
+        height: 60px;
+        border: 6px solid rgba(255, 255, 255, 0.3);
+        border-top: 6px solid white;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin: 0 auto;
+      }
+      
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+      
+      .progress-bar {
+        width: 300px;
+        height: 8px;
+        background: rgba(255, 255, 255, 0.3);
+        border-radius: 4px;
+        margin: 2rem auto 0;
+        overflow: hidden;
+      }
+      
+      .progress-fill {
+        height: 100%;
+        background: white;
+        border-radius: 4px;
+        width: 0%;
+        transition: width 0.3s ease;
+      }
+    </style>
+  </head>
+  <body>
+    <noscript>
+      <div style="text-align: center; padding: 2rem; color: white;">
+        <h1>Neural Style Transfer</h1>
+        <p>This app requires JavaScript to run. Please enable JavaScript in your browser.</p>
+      </div>
+    </noscript>
+    
+    <div id="root">
+      <div class="loading-screen">
+        <h1>Neural Style Transfer</h1>
+        <p>Loading AI-powered image transformation engine...</p>
+        <div class="spinner"></div>
+        <div class="progress-bar">
+          <div class="progress-fill" id="progress-fill"></div>
+        </div>
+        <p id="loading-status">Initializing...</p>
+      </div>
+    </div>
+    
+    <script>
+      // Service Worker Registration
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then((registration) => {
+              console.log('SW registered: ', registration);
+            })
+            .catch((registrationError) => {
+              console.log('SW registration failed: ', registrationError);
+            });
+        });
+      }
+      
+      // Loading progress simulation
+      let progress = 0;
+      const progressFill = document.getElementById('progress-fill');
+      const loadingStatus = document.getElementById('loading-status');
+      
+      const progressInterval = setInterval(() => {
+        progress += Math.random() * 15;
+        if (progress > 90) progress = 90;
+        
+        progressFill.style.width = progress + '%';
+        
+        if (progress < 30) {
+          loadingStatus.textContent = 'Loading WebAssembly engine...';
+        } else if (progress < 60) {
+          loadingStatus.textContent = 'Initializing WebGPU context...';
+        } else if (progress < 90) {
+          loadingStatus.textContent = 'Preparing style models...';
+        }
+      }, 200);
+      
+      // Hide loading screen when React app is ready
+      window.addEventListener('app-ready', () => {
+        clearInterval(progressInterval);
+        progress = 100;
+        progressFill.style.width = '100%';
+        loadingStatus.textContent = 'Ready!';
+        
+        setTimeout(() => {
+          document.querySelector('.loading-screen').style.display = 'none';
+        }, 500);
+      });
+    </script>
+  </body>
+</html>
