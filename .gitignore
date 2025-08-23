@@ -1,0 +1,19 @@
+# Dependencies
+node_modules/
+
+# Cache directories  
+.cache/
+web-app/node_modules/.cache/
+.parcel-cache/
+
+# Build outputs
+dist/
+build/
+
+# Environment files
+.env
+.env.local
+
+# OS files
+.DS_Store
+Thumbs.db
