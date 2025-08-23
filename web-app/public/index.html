@@ -25,42 +25,113 @@
     <title>Neural Style Transfer - AI-Powered Image Transformation</title>
     
     <style>
-      /* Critical CSS for loading state */
+      /* Futuristic AI/ML Theme */
+      @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap');
+      
       body {
         margin: 0;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        font-family: 'Rajdhani', sans-serif;
+        background: #0a0a0a;
         min-height: 100vh;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+        overflow-x: hidden;
+        position: relative;
+      }
+      
+      /* Particles Background */
+      .particles {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: -1;
+        background: 
+          radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+          radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
+          radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.3) 0%, transparent 50%);
+      }
+      
+      .particle {
+        position: absolute;
+        background: rgba(120, 219, 255, 0.6);
+        border-radius: 50%;
+        animation: float 6s ease-in-out infinite;
+      }
+      
+      .particle:nth-child(1) { width: 4px; height: 4px; left: 10%; animation-delay: 0s; }
+      .particle:nth-child(2) { width: 6px; height: 6px; left: 20%; animation-delay: 1s; }
+      .particle:nth-child(3) { width: 3px; height: 3px; left: 30%; animation-delay: 2s; }
+      .particle:nth-child(4) { width: 5px; height: 5px; left: 40%; animation-delay: 3s; }
+      .particle:nth-child(5) { width: 4px; height: 4px; left: 50%; animation-delay: 4s; }
+      .particle:nth-child(6) { width: 6px; height: 6px; left: 60%; animation-delay: 5s; }
+      .particle:nth-child(7) { width: 3px; height: 3px; left: 70%; animation-delay: 6s; }
+      .particle:nth-child(8) { width: 5px; height: 5px; left: 80%; animation-delay: 7s; }
+      .particle:nth-child(9) { width: 4px; height: 4px; left: 90%; animation-delay: 8s; }
+      
+      @keyframes float {
+        0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 0.6; }
+        50% { transform: translateY(-20px) rotate(180deg); opacity: 1; }
+      }
+      
+      /* Neural Network Grid */
+      .neural-grid {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: -1;
+        background-image: 
+          linear-gradient(rgba(120, 219, 255, 0.1) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(120, 219, 255, 0.1) 1px, transparent 1px);
+        background-size: 50px 50px;
+        animation: grid-move 20s linear infinite;
+      }
+      
+      @keyframes grid-move {
+        0% { transform: translate(0, 0); }
+        100% { transform: translate(50px, 50px); }
       }
       
       .loading-screen {
         text-align: center;
-        color: white;
+        color: #78dbff;
+        transition: opacity 0.3s ease;
+        position: relative;
+        z-index: 10;
       }
       
       .loading-screen h1 {
-        font-size: 2.5rem;
+        font-family: 'Orbitron', monospace;
+        font-size: 3rem;
+        font-weight: 900;
         margin-bottom: 1rem;
-        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        text-shadow: 0 0 20px rgba(120, 219, 255, 0.8);
+        background: linear-gradient(45deg, #78dbff, #ff77c6);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        letter-spacing: 3px;
       }
       
       .loading-screen p {
-        font-size: 1.1rem;
+        font-size: 1.2rem;
         margin-bottom: 2rem;
         opacity: 0.9;
+        color: #b8e6ff;
+        font-weight: 300;
       }
       
       .spinner {
-        width: 60px;
-        height: 60px;
-        border: 6px solid rgba(255, 255, 255, 0.3);
-        border-top: 6px solid white;
+        width: 80px;
+        height: 80px;
+        border: 4px solid rgba(120, 219, 255, 0.2);
+        border-top: 4px solid #78dbff;
+        border-right: 4px solid #ff77c6;
         border-radius: 50%;
-        animation: spin 1s linear infinite;
+        animation: spin 1.5s linear infinite;
         margin: 0 auto;
+        box-shadow: 0 0 30px rgba(120, 219, 255, 0.5);
       }
       
       @keyframes spin {
@@ -69,26 +140,43 @@
       }
       
       .progress-bar {
-        width: 300px;
-        height: 8px;
-        background: rgba(255, 255, 255, 0.3);
-        border-radius: 4px;
+        width: 400px;
+        height: 12px;
+        background: rgba(120, 219, 255, 0.1);
+        border-radius: 6px;
         margin: 2rem auto 0;
         overflow: hidden;
+        border: 1px solid rgba(120, 219, 255, 0.3);
+        box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
       }
       
       .progress-fill {
         height: 100%;
-        background: white;
-        border-radius: 4px;
+        background: linear-gradient(90deg, #78dbff, #ff77c6);
+        border-radius: 6px;
         width: 0%;
         transition: width 0.3s ease;
+        box-shadow: 0 0 20px rgba(120, 219, 255, 0.6);
       }
     </style>
   </head>
   <body>
+    <!-- Futuristic AI Background -->
+    <div class="particles">
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+    </div>
+    <div class="neural-grid"></div>
+    
     <noscript>
-      <div style="text-align: center; padding: 2rem; color: white;">
+      <div style="text-align: center; padding: 2rem; color: #78dbff;">
         <h1>Neural Style Transfer</h1>
         <p>This app requires JavaScript to run. Please enable JavaScript in your browser.</p>
       </div>
@@ -96,13 +184,13 @@
     
     <div id="root">
       <div class="loading-screen">
-        <h1>Neural Style Transfer</h1>
-        <p>Loading AI-powered image transformation engine...</p>
+        <h1>NEURAL STYLE TRANSFER</h1>
+        <p>Initializing AI-powered image transformation engine...</p>
         <div class="spinner"></div>
         <div class="progress-bar">
           <div class="progress-fill" id="progress-fill"></div>
         </div>
-        <p id="loading-status">Initializing...</p>
+        <p id="loading-status">Loading neural networks...</p>
       </div>
     </div>
     
@@ -120,37 +208,62 @@
         });
       }
       
-      // Loading progress simulation
+      // Instant loading - no delays
       let progress = 0;
       const progressFill = document.getElementById('progress-fill');
       const loadingStatus = document.getElementById('loading-status');
       
+      // Check if elements exist before proceeding
+      if (!progressFill || !loadingStatus) {
+        console.warn('Loading elements not found, skipping progress animation');
+        return;
+      }
+      
+      // Instant progress animation
       const progressInterval = setInterval(() => {
-        progress += Math.random() * 15;
-        if (progress > 90) progress = 90;
+        progress += Math.random() * 50; // Extremely fast progress
+        if (progress > 95) progress = 95; // Stop at 95% until React is ready
         
-        progressFill.style.width = progress + '%';
+        if (progressFill) progressFill.style.width = progress + '%';
         
-        if (progress < 30) {
-          loadingStatus.textContent = 'Loading WebAssembly engine...';
-        } else if (progress < 60) {
-          loadingStatus.textContent = 'Initializing WebGPU context...';
-        } else if (progress < 90) {
-          loadingStatus.textContent = 'Preparing style models...';
+        // Quick status updates
+        if (loadingStatus) {
+          if (progress < 40) {
+            loadingStatus.textContent = 'Loading neural networks...';
+          } else if (progress < 80) {
+            loadingStatus.textContent = 'Initializing AI models...';
+          } else if (progress < 95) {
+            loadingStatus.textContent = 'Preparing style transfer engine...';
+          }
         }
-      }, 200);
+      }, 50); // Extremely fast updates
       
       // Hide loading screen when React app is ready
       window.addEventListener('app-ready', () => {
-        clearInterval(progressInterval);
-        progress = 100;
-        progressFill.style.width = '100%';
-        loadingStatus.textContent = 'Ready!';
+        if (progressInterval) clearInterval(progressInterval);
         
+        // Futuristic completion animation
+        progress = 100;
+        if (progressFill) progressFill.style.width = '100%';
+        if (loadingStatus) loadingStatus.textContent = 'AI Engine Ready! 🚀';
+        
+        // Instant fade out
         setTimeout(() => {
-          document.querySelector('.loading-screen').style.display = 'none';
-        }, 500);
+          const loadingScreen = document.querySelector('.loading-screen');
+          if (loadingScreen) {
+            loadingScreen.style.opacity = '0';
+            loadingScreen.style.transform = 'scale(1.05)';
+            loadingScreen.style.transition = 'all 0.2s ease';
+            
+            setTimeout(() => {
+              if (loadingScreen) {
+                loadingScreen.style.display = 'none';
+              }
+            }, 200);
+          }
+        }, 50); // Nearly instant transition
       });
     </script>
   </body>
 </html>
+

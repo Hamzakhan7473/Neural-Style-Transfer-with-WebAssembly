@@ -13,5 +13,7 @@ root.render(
   </React.StrictMode>
 );
 
-// Notify the HTML that the app is ready
-window.dispatchEvent(new Event('app-ready'));
+// Notify the HTML that the app is ready - instant loading
+setTimeout(() => {
+  window.dispatchEvent(new Event('app-ready'));
+}, 10); // Minimal delay for instant transition

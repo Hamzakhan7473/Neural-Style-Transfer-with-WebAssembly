@@ -36,3 +36,4 @@ export interface ProcessingOptions {
 export interface ModelRegistry {
   [key: string]: StyleModel;
 }
+
