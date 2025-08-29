@@ -1,11 +1,11 @@
 use crate::engine::{ModelMetadata, ONNXStyleTransferEngine};
 use wasm_bindgen::prelude::*;
-use std::collections::HashMap;
+
 use js_sys;
 
 #[wasm_bindgen]
 pub struct ModelRegistry {
-    models: HashMap<String, ModelMetadata>,
+    models: Vec<String>,
     engine: ONNXStyleTransferEngine,
 }
 
@@ -14,7 +14,7 @@ impl ModelRegistry {
     #[wasm_bindgen(constructor)]
     pub fn new() -> ModelRegistry {
         let mut registry = ModelRegistry {
-            models: HashMap::new(),
+            models: Vec::new(),
             engine: ONNXStyleTransferEngine::new(),
         };
         
@@ -34,7 +34,7 @@ impl ModelRegistry {
             recommended_resolution: (512, 512),
             style_description: "Impressionist style inspired by Van Gogh's Starry Night, featuring swirling brushstrokes, vibrant colors, and expressive texture".to_string(),
         };
-        self.models.insert("van-gogh".to_string(), van_gogh_metadata);
+        self.models.push("van-gogh".to_string());
 
         // Picasso Style Model
         let picasso_metadata = ModelMetadata {
@@ -45,7 +45,7 @@ impl ModelRegistry {
             recommended_resolution: (512, 512),
             style_description: "Cubist abstraction inspired by Picasso's geometric forms, featuring angular shapes, fragmented perspectives, and bold color contrasts".to_string(),
         };
-        self.models.insert("picasso".to_string(), picasso_metadata);
+        self.models.push("picasso".to_string());
 
         // Cyberpunk Style Model
         let cyberpunk_metadata = ModelMetadata {
@@ -56,7 +56,7 @@ impl ModelRegistry {
             recommended_resolution: (512, 512),
             style_description: "Futuristic cyberpunk aesthetic with neon colors, digital glitch effects, and high-tech urban atmosphere".to_string(),
         };
-        self.models.insert("cyberpunk".to_string(), cyberpunk_metadata);
+        self.models.push("cyberpunk".to_string());
 
         // Watercolor Style Model
         let watercolor_metadata = ModelMetadata {
@@ -67,7 +67,7 @@ impl ModelRegistry {
             recommended_resolution: (512, 512),
             style_description: "Soft watercolor painting style with flowing colors, gentle blending, and translucent washes".to_string(),
         };
-        self.models.insert("watercolor".to_string(), watercolor_metadata);
+        self.models.push("watercolor".to_string());
 
         // Oil Painting Style Model
         let oil_painting_metadata = ModelMetadata {
@@ -78,7 +78,7 @@ impl ModelRegistry {
             recommended_resolution: (512, 512),
             style_description: "Classical oil painting style with rich textures, deep colors, and traditional artistic techniques".to_string(),
         };
-        self.models.insert("oil-painting".to_string(), oil_painting_metadata);
+        self.models.push("oil-painting".to_string());
     }
 
     pub fn initialize(&mut self) -> Result<(), JsValue> {
@@ -89,22 +89,20 @@ impl ModelRegistry {
     }
 
     pub fn get_available_styles(&self) -> Result<JsValue, JsValue> {
-        let styles: Vec<String> = self.models.keys().cloned().collect();
-        serde_wasm_bindgen::to_value(&styles)
+        serde_wasm_bindgen::to_value(&self.models)
             .map_err(|e| format!("Serialization failed: {}", e).into())
     }
 
     pub fn get_model_metadata(&self, style_name: &str) -> Result<JsValue, JsValue> {
-        if let Some(metadata) = self.models.get(style_name) {
-            serde_wasm_bindgen::to_value(metadata)
-                .map_err(|e| format!("Serialization failed: {}", e).into())
+        if self.models.contains(&style_name.to_string()) {
+            Ok(serde_wasm_bindgen::to_value(&style_name)?)
         } else {
             Err(format!("Model '{}' not found", style_name).into())
         }
     }
 
     pub fn load_model(&mut self, style_name: &str) -> Result<(), JsValue> {
-        if !self.models.contains_key(style_name) {
+        if !self.models.contains(&style_name.to_string()) {
             return Err(format!("Style '{}' not available", style_name).into());
         }
         
@@ -134,7 +132,7 @@ impl ModelRegistry {
     }
 
     pub fn get_total_model_size(&self) -> usize {
-        self.models.values().map(|m| m.size_bytes).sum()
+        self.models.len() * 15_000_000 // Approximate size per model
     }
 
     pub fn get_model_count(&self) -> usize {
@@ -142,7 +140,7 @@ impl ModelRegistry {
     }
 
     pub fn is_model_loaded(&self, style_name: &str) -> bool {
-        self.models.contains_key(style_name)
+        self.models.contains(&style_name.to_string())
     }
 }
 

@@ -27,21 +27,32 @@ export const useRustWasmEngine = () => {
       
       setProgress(30);
       
-      // Initialize the model registry
-      const ModelRegistry = wasmModule.ModelRegistry;
-      modelRegistryRef.current = new ModelRegistry();
+      // Initialize the style transfer engine
+      console.log('🔍 Available exports:', Object.keys(wasmModule));
+      const StyleTransferEngine = wasmModule.StyleTransferEngine;
+      console.log('🔍 StyleTransferEngine:', StyleTransferEngine);
+      console.log('🔍 StyleTransferEngine type:', typeof StyleTransferEngine);
+      
+      if (typeof StyleTransferEngine !== 'function') {
+        throw new Error(`StyleTransferEngine is not a constructor: ${typeof StyleTransferEngine}`);
+      }
+      
+      modelRegistryRef.current = new StyleTransferEngine();
+      console.log('✅ StyleTransferEngine created successfully');
       
       setProgress(50);
       
-      // Initialize the engine (now synchronous)
-      modelRegistryRef.current.initialize();
+      // Initialize the engine
+      console.log('🔄 Initializing engine...');
+      await modelRegistryRef.current.initialize();
+      console.log('✅ Engine initialized successfully');
       
       setProgress(80);
       
-      // Get available styles (synchronous)
-      const availableStyles = modelRegistryRef.current.get_available_styles();
-      console.log('✅ Available styles from Rust:', availableStyles);
-      console.log('✅ Available styles length:', availableStyles ? availableStyles.length : 'undefined');
+      // Get available styles (hardcoded for now since we're using StyleTransferEngine)
+      const availableStyles = ["van-gogh", "picasso", "cyberpunk", "watercolor", "oil-painting"];
+      console.log('✅ Available styles:', availableStyles);
+      console.log('✅ Available styles length:', availableStyles.length);
       
       setProgress(100);
       setIsInitialized(true);
@@ -66,10 +77,8 @@ export const useRustWasmEngine = () => {
       setProgress(0);
       setIsLoading(true);
       
-              // Load the model (now synchronous)
-        console.log(`🔄 About to load model: ${styleName}`);
-        modelRegistryRef.current.load_model(styleName);
-        console.log(`✅ Model loaded successfully: ${styleName}`);
+              // Load the style
+        await modelRegistryRef.current.load_style(styleName);
         currentModelRef.current = styleName;
       
       setProgress(100);
@@ -107,6 +116,11 @@ export const useRustWasmEngine = () => {
       // Get image dimensions
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
+      
+      if (!ctx) {
+        throw new Error('Failed to get canvas 2D context. Canvas may not be supported.');
+      }
+      
       const img = new Image();
       
       return new Promise((resolve, reject) => {
@@ -121,21 +135,19 @@ export const useRustWasmEngine = () => {
             
             setProgress(40);
             
-            // Apply style transfer using Rust engine (now synchronous)
-            const result = modelRegistryRef.current.apply_style_transfer(
+            // Apply style transfer using Rust engine
+            const result = modelRegistryRef.current.quick_transfer_style(
               pixelData,
-              canvas.width,
-              canvas.height,
-              styleStrength / 100.0, // Normalize to 0.0-1.0
-              styleName
+              styleName,
+              styleStrength / 100.0 // Normalize to 0.0-1.0
             );
             
             setProgress(80);
             
-            if (result.success && result.output_data) {
+            if (result && result.length > 0) {
               // Convert output data back to ImageData
               const outputImageData = new ImageData(
-                new Uint8ClampedArray(result.output_data),
+                new Uint8ClampedArray(result),
                 canvas.width,
                 canvas.height
               );
@@ -143,11 +155,11 @@ export const useRustWasmEngine = () => {
               setProgress(100);
               setIsLoading(false);
               
-              console.log(`✅ Style transfer completed in ${result.processing_time_ms.toFixed(2)}ms`);
+              console.log(`✅ Style transfer completed successfully`);
               resolve(outputImageData);
               
             } else {
-              throw new Error(result.error_message || 'Style transfer failed');
+              throw new Error('Style transfer failed: No output data');
             }
             
           } catch (err) {

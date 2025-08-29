@@ -26,8 +26,13 @@ if [ $? -eq 0 ]; then
     ls -la ../web-app/public/wasm/
     
     # Copy to web-app public directory
-    echo "📋 Copying files to web-app..."
-    cp -r ../web-app/public/wasm/* ../web-app/public/
+    echo "📋 Copying files to web-app/public..."
+    cp -r pkg/* ../web-app/public/wasm/
+    
+    # Copy to web-app src directory for React imports
+    echo "📋 Copying files to web-app/src/wasm..."
+    mkdir -p ../web-app/src/wasm
+    cp -r pkg/* ../web-app/src/wasm/
     
     echo "🎉 Build complete! WebAssembly files are ready in web-app/public/"
 else
