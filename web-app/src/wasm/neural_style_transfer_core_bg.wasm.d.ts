@@ -1,0 +1,37 @@
+/* tslint:disable */
+/* eslint-disable */
+export const memory: WebAssembly.Memory;
+export const __wbg_styletransferengine_free: (a: number, b: number) => void;
+export const styletransferengine_new: () => number;
+export const styletransferengine_initialize: (a: number) => any;
+export const styletransferengine_is_ready: (a: number) => number;
+export const styletransferengine_load_style: (a: number, b: number, c: number) => any;
+export const styletransferengine_get_loaded_styles: (a: number) => [number, number];
+export const styletransferengine_transfer_style: (a: number, b: number, c: number, d: number, e: number, f: number, g: any) => any;
+export const styletransferengine_quick_transfer_style: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number, number, number];
+export const __wbg_modelregistry_free: (a: number, b: number) => void;
+export const modelregistry_new: () => number;
+export const modelregistry_initialize: (a: number) => any;
+export const modelregistry_get_available_styles: (a: number) => [number, number, number];
+export const modelregistry_get_model_metadata: (a: number, b: number, c: number) => [number, number, number];
+export const modelregistry_load_model: (a: number, b: number, c: number) => any;
+export const modelregistry_apply_style_transfer: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number) => any;
+export const modelregistry_get_total_model_size: (a: number) => number;
+export const modelregistry_get_model_count: (a: number) => number;
+export const modelregistry_is_model_loaded: (a: number, b: number, c: number) => number;
+export const load_onnx_model_from_url: (a: number, b: number, c: number, d: number) => [number, number, number, number];
+export const validate_onnx_model: (a: number, b: number) => [number, number, number];
+export const get_model_info: (a: number, b: number) => [number, number, number];
+export const main: () => void;
+export const __wbindgen_malloc: (a: number, b: number) => number;
+export const __wbindgen_realloc: (a: number, b: number, c: number, d: number) => number;
+export const __wbindgen_exn_store: (a: number) => void;
+export const __externref_table_alloc: () => number;
+export const __wbindgen_export_4: WebAssembly.Table;
+export const __wbindgen_free: (a: number, b: number, c: number) => void;
+export const __wbindgen_export_6: WebAssembly.Table;
+export const __externref_drop_slice: (a: number, b: number) => void;
+export const __externref_table_dealloc: (a: number) => void;
+export const closure25_externref_shim: (a: number, b: number, c: any) => void;
+export const closure18_externref_shim: (a: number, b: number, c: any, d: any) => void;
+export const __wbindgen_start: () => void;

@@ -1,0 +1,24 @@
+{
+  "name": "neural-style-transfer-core",
+  "type": "module",
+  "collaborators": [
+    "Hamza Khan <hamzakhan7473@example.com>"
+  ],
+  "description": "WebAssembly-powered neural style transfer engine",
+  "version": "0.1.0",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Hamzakhan7473/Neural-Style-Transfer-with-WebAssembly"
+  },
+  "files": [
+    "neural_style_transfer_core_bg.wasm",
+    "neural_style_transfer_core.js",
+    "neural_style_transfer_core.d.ts"
+  ],
+  "main": "neural_style_transfer_core.js",
+  "types": "neural_style_transfer_core.d.ts",
+  "sideEffects": [
+    "./snippets/*"
+  ]
+}

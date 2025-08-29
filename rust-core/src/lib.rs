@@ -2,27 +2,16 @@ use wasm_bindgen::prelude::*;
 
 mod engine;
 mod models;
-mod gpu;
-mod utils;
 
-pub use engine::StyleTransferEngine;
-pub use models::*;
-pub use gpu::GpuContext;
+pub use engine::{ONNXStyleTransferEngine, ModelMetadata, StyleTransferResult};
+pub use models::{ModelRegistry, load_onnx_model_from_url, validate_onnx_model, get_model_info};
 
-// Called when the WASM module is instantiated
-#[wasm_bindgen(start)]
-pub fn main() {
-    utils::set_panic_hook();
+#[wasm_bindgen]
+pub fn init_panic_hook() {
     console_error_panic_hook::set_once();
 }
 
-#[wasm_bindgen]
-extern "C" {
-    #[wasm_bindgen(js_namespace = console)]
-    fn log(s: &str);
-}
-
-#[macro_export]
-macro_rules! console_log {
-    ($($t:tt)*) => (log(&format_args!($($t)*).to_string()))
+#[wasm_bindgen(start)]
+pub fn main() {
+    init_panic_hook();
 }
