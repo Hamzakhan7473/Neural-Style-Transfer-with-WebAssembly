@@ -1,0 +1,69 @@
+{
+  "styles": [
+    {
+      "id": "vangogh",
+      "name": "Van Gogh - Starry Night",
+      "size": "8.5MB",
+      "model_url": "./models/starry_night.onnx",
+      "input_name": "input",
+      "output_name": "output",
+      "input_width": 512,
+      "input_height": 512,
+      "mean": [0.485, 0.456, 0.406],
+      "std": [0.229, 0.224, 0.225],
+      "scale": 255.0
+    },
+    {
+      "id": "picasso",
+      "name": "Picasso - Cubist",
+      "size": "8.2MB",
+      "model_url": "./models/picasso_cubist.onnx",
+      "input_name": "input",
+      "output_name": "output",
+      "input_width": 512,
+      "input_height": 512,
+      "mean": [0.485, 0.456, 0.406],
+      "std": [0.229, 0.224, 0.225],
+      "scale": 255.0
+    },
+    {
+      "id": "ukiyo-e",
+      "name": "Japanese Ukiyo-e",
+      "size": "7.8MB",
+      "model_url": "./models/ukiyo_e.onnx",
+      "input_name": "input",
+      "output_name": "output",
+      "input_width": 512,
+      "input_height": 512,
+      "mean": [0.485, 0.456, 0.406],
+      "std": [0.229, 0.224, 0.225],
+      "scale": 255.0
+    },
+    {
+      "id": "cyberpunk",
+      "name": "Cyberpunk Neon",
+      "size": "9.1MB",
+      "model_url": "./models/cyberpunk.onnx",
+      "input_name": "input",
+      "output_name": "output",
+      "input_width": 512,
+      "input_height": 512,
+      "mean": [0.485, 0.456, 0.406],
+      "std": [0.229, 0.224, 0.225],
+      "scale": 255.0
+    },
+    {
+      "id": "abstract",
+      "name": "Abstract Expressionism",
+      "size": "8.7MB",
+      "model_url": "./models/abstract_expr.onnx",
+      "input_name": "input",
+      "output_name": "output",
+      "input_width": 512,
+      "input_height": 512,
+      "mean": [0.485, 0.456, 0.406],
+      "std": [0.229, 0.224, 0.225],
+      "scale": 255.0
+    }
+  ]
+}

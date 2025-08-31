@@ -1,0 +1,9 @@
+/Users/hamzakhan/Neural-Style-Transfer-with-WebAssembly/target/wasm32-unknown-unknown/release/deps/wasm_bindgen_futures-171034af9697ee22.d: /Users/hamzakhan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wasm-bindgen-futures-0.4.45/src/lib.rs /Users/hamzakhan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wasm-bindgen-futures-0.4.45/src/queue.rs /Users/hamzakhan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wasm-bindgen-futures-0.4.45/src/task/singlethread.rs
+
+/Users/hamzakhan/Neural-Style-Transfer-with-WebAssembly/target/wasm32-unknown-unknown/release/deps/libwasm_bindgen_futures-171034af9697ee22.rlib: /Users/hamzakhan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wasm-bindgen-futures-0.4.45/src/lib.rs /Users/hamzakhan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wasm-bindgen-futures-0.4.45/src/queue.rs /Users/hamzakhan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wasm-bindgen-futures-0.4.45/src/task/singlethread.rs
+
+/Users/hamzakhan/Neural-Style-Transfer-with-WebAssembly/target/wasm32-unknown-unknown/release/deps/libwasm_bindgen_futures-171034af9697ee22.rmeta: /Users/hamzakhan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wasm-bindgen-futures-0.4.45/src/lib.rs /Users/hamzakhan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wasm-bindgen-futures-0.4.45/src/queue.rs /Users/hamzakhan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wasm-bindgen-futures-0.4.45/src/task/singlethread.rs
+
+/Users/hamzakhan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wasm-bindgen-futures-0.4.45/src/lib.rs:
+/Users/hamzakhan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wasm-bindgen-futures-0.4.45/src/queue.rs:
+/Users/hamzakhan/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wasm-bindgen-futures-0.4.45/src/task/singlethread.rs:

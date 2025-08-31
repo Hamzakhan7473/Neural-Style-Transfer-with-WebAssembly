@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧪 Neural Style Transfer Test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+            background: #0b0b0b;
+            color: #fff;
+        }
+        .test-section {
+            background: #111;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            border-radius: 8px;
+            border: 1px solid #333;
+        }
+        button {
+            background: #0066cc;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 0.5rem 0.5rem 0.5rem 0;
+        }
+        button:hover { background: #0052a3; }
+        button:disabled { background: #666; cursor: not-allowed; }
+        .success { color: #4caf50; }
+        .error { color: #f44336; }
+        .warning { color: #ff9800; }
+        pre {
+            background: #000;
+            padding: 1rem;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 0.9rem;
+        }
+        canvas {
+            border: 1px solid #333;
+            border-radius: 4px;
+            background: #000;
+            max-width: 100%;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Neural Style Transfer Test</h1>
+    
+    <div class="test-section">
+        <h3>Test 1: WASM Module Loading</h3>
+        <p>Test basic WebAssembly module import and initialization</p>
+        <button onclick="testWasmLoading()">Test WASM Loading</button>
+        <div id="result1"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>Test 2: StyleTransfer Creation</h3>
+        <p>Test creating a StyleTransfer instance</p>
+        <button onclick="testStyleTransferCreation()">Test StyleTransfer Creation</button>
+        <div id="result2"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>Test 3: WebGPU Initialization</h3>
+        <p>Test WebGPU initialization</p>
+        <button onclick="testWebGPUInit()">Test WebGPU Init</button>
+        <div id="result3"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>Test 4: Available Styles</h3>
+        <p>Test getting available styles</p>
+        <button onclick="testAvailableStyles()">Test Available Styles</button>
+        <div id="result4"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>Test 5: Canvas Operations</h3>
+        <p>Test canvas creation and basic operations</p>
+        <canvas id="testCanvas" width="200" height="200"></canvas>
+        <button onclick="testCanvasOperations()">Test Canvas Operations</button>
+        <div id="result5"></div>
+    </div>
+
+    <script type="module">
+        import init, { StyleTransfer } from './pkg/neural-style-transfer.js';
+        
+        let styleTransfer = null;
+        let wasmLoaded = false;
+
+        async function testWasmLoading() {
+            const resultDiv = document.getElementById('result1');
+            resultDiv.innerHTML = '<p>🔄 Testing WASM module loading...</p>';
+            
+            try {
+                await init();
+                wasmLoaded = true;
+                resultDiv.innerHTML = '<p class="success">✅ WASM module loaded successfully!</p>';
+            } catch (error) {
+                resultDiv.innerHTML = `<p class="error">❌ WASM loading failed: ${error}</p>`;
+            }
+        }
+
+        async function testStyleTransferCreation() {
+            const resultDiv = document.getElementById('result2');
+            
+            if (!wasmLoaded) {
+                resultDiv.innerHTML = '<p class="warning">⚠️ Please load WASM module first</p>';
+                return;
+            }
+            
+            resultDiv.innerHTML = '<p>🔄 Testing StyleTransfer creation...</p>';
+            
+            try {
+                styleTransfer = new StyleTransfer('testCanvas');
+                resultDiv.innerHTML = '<p class="success">✅ StyleTransfer instance created successfully!</p>';
+            } catch (error) {
+                resultDiv.innerHTML = `<p class="error">❌ StyleTransfer creation failed: ${error}</p>`;
+            }
+        }
+
+        async function testWebGPUInit() {
+            const resultDiv = document.getElementById('result3');
+            
+            if (!styleTransfer) {
+                resultDiv.innerHTML = '<p class="warning">⚠️ Please create StyleTransfer instance first</p>';
+                return;
+            }
+            
+            resultDiv.innerHTML = '<p>🔄 Testing WebGPU initialization...</p>';
+            
+            try {
+                await styleTransfer.initialize_webgpu();
+                resultDiv.innerHTML = '<p class="success">✅ WebGPU initialized successfully!</p>';
+            } catch (error) {
+                resultDiv.innerHTML = `<p class="error">❌ WebGPU initialization failed: ${error}</p>`;
+            }
+        }
+
+        async function testAvailableStyles() {
+            const resultDiv = document.getElementById('result4');
+            
+            if (!styleTransfer) {
+                resultDiv.innerHTML = '<p class="warning">⚠️ Please create StyleTransfer instance first</p>';
+                return;
+            }
+            
+            resultDiv.innerHTML = '<p>🔄 Testing available styles...</p>';
+            
+            try {
+                const styles = styleTransfer.get_available_styles();
+                resultDiv.innerHTML = `
+                    <p class="success">✅ Available styles retrieved successfully!</p>
+                    <pre>${JSON.stringify(styles, null, 2)}</pre>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `<p class="error">❌ Failed to get available styles: ${error}</p>`;
+            }
+        }
+
+        async function testCanvasOperations() {
+            const resultDiv = document.getElementById('result5');
+            const canvas = document.getElementById('testCanvas');
+            const ctx = canvas.getContext('2d');
+            
+            try {
+                // Draw a simple test pattern
+                ctx.fillStyle = '#ff0000';
+                ctx.fillRect(0, 0, 100, 100);
+                ctx.fillStyle = '#00ff00';
+                ctx.fillRect(100, 0, 100, 100);
+                ctx.fillStyle = '#0000ff';
+                ctx.fillRect(0, 100, 100, 100);
+                ctx.fillStyle = '#ffff00';
+                ctx.fillRect(100, 100, 100, 100);
+                
+                resultDiv.innerHTML = '<p class="success">✅ Canvas operations successful! Check the canvas above.</p>';
+            } catch (error) {
+                resultDiv.innerHTML = `<p class="error">❌ Canvas operations failed: ${error}</p>`;
+            }
+        }
+
+        // Make functions globally available
+        window.testWasmLoading = testWasmLoading;
+        window.testStyleTransferCreation = testStyleTransferCreation;
+        window.testWebGPUInit = testWebGPUInit;
+        window.testAvailableStyles = testAvailableStyles;
+        window.testCanvasOperations = testCanvasOperations;
+    </script>
+</body>
+</html>
