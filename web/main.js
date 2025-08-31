@@ -1,4 +1,7 @@
-import init, { StyleTransfer } from './pkg/neural_style_transfer.js';
+import init, { Stylizer } from './pkg/stylizer.js';
+
+// Import the ImagePreprocessor
+import './js/imagePreprocessor.js';
 
 // Global variables
 let fileInput, webcamBtn, styleSel, modelInfo, runBtn, resetBtn, downloadBtn;
@@ -11,6 +14,8 @@ let currentMeta = null;
 let originalImageData = null;
 let webcamOn = false;
 let webcamRAF = 0;
+
+let imagePreprocessor = null;
 
 // Wait for DOM to be fully loaded
 document.addEventListener('DOMContentLoaded', () => {
@@ -146,15 +151,7 @@ function setupEventListeners() {
     const file = e.target.files[0];
     console.log('📁 Selected file:', file.name, file.size, file.type);
     
-    const img = new Image();
-    img.onload = () => {
-      console.log('🖼️ Image loaded:', img.width, 'x', img.height);
-      drawToCanvas(img);
-    };
-    img.onerror = (error) => {
-      console.error('❌ Failed to load image:', error);
-    };
-    img.src = URL.createObjectURL(file);
+    await handleFileUpload(file);
     stopWebcam();
   });
   
@@ -178,12 +175,10 @@ function setupEventListeners() {
   });
   
   // Strength slider event listener
-  strength.addEventListener('input', () => {
-    strengthVal.textContent = strength.value;
-    if (styleTransfer) {
-      styleTransfer.set_style_strength(parseFloat(strength.value));
-    }
-  });
+       strength.addEventListener('input', () => {
+       strengthVal.textContent = strength.value;
+       // Note: Stylizer handles strength during blend operation
+     });
   
   // Run button event listener
   runBtn.addEventListener('click', stylizeOnce);
@@ -206,35 +201,8 @@ function setupEventListeners() {
   console.log('✅ Event listeners set up successfully');
 }
 
-async function initializeWasmModule() {
+async function loadStyles() {
   try {
-    console.log('🚀 Initializing WASM module...');
-    
-    // Check if WASM is supported
-    if (typeof WebAssembly === 'undefined') {
-      throw new Error('WebAssembly is not supported in this browser');
-    }
-    
-    await init();
-    console.log('✅ WASM module initialized');
-    
-    // Initialize the style transfer
-    console.log('🎨 Creating StyleTransfer instance...');
-    styleTransfer = new StyleTransfer('canvasOut');
-    
-    // Try WebGPU initialization
-    try {
-      await styleTransfer.initialize_webgpu();
-      console.log('✅ WebGPU initialized successfully');
-    } catch (webgpuError) {
-      console.warn('⚠️ WebGPU initialization failed, continuing without GPU acceleration:', webgpuError);
-    }
-    
-    // Update GPU badge
-    const adapter = await navigator.gpu?.requestAdapter();
-    gpuBadge.textContent = adapter ? `WebGPU: ${adapter.name || 'available'}` : 'WebGPU not supported';
-    
-    // Load style registry
     console.log('📚 Loading style registry...');
     const response = await fetch('./styles.json');
     if (!response.ok) {
@@ -258,31 +226,77 @@ async function initializeWasmModule() {
       selectStyle(registry.styles[0].id);
     }
     
-    console.log('🎉 WASM setup complete!');
-    modelInfo.textContent = '✅ WASM module loaded successfully! Select a style and upload an image to begin.';
+    console.log('✅ Style registry loaded successfully');
     
   } catch (error) {
-    console.error('❌ WASM initialization failed:', error);
-    modelInfo.textContent = `WASM Error: ${error.message}. The app will work for testing UI but style transfer won't function.`;
-    
-    // Still populate styles for UI testing
-    try {
-      const response = await fetch('./styles.json');
-      if (response.ok) {
-        registry = await response.json();
-        styleSel.innerHTML = '<option value="">Choose a style...</option>';
-        for (const item of registry.styles) {
-          const opt = document.createElement('option');
-          opt.value = item.id;
-          opt.textContent = `${item.name} (${item.size})`;
-          styleSel.appendChild(opt);
-        }
-        console.log('⚠️ Styles loaded for UI testing, but WASM is not functional');
-      }
-    } catch (styleError) {
-      console.error('❌ Failed to load styles:', styleError);
-    }
+    console.error('❌ Failed to load styles:', error);
+    throw error;
   }
+}
+
+async function initializeWasmModule() {
+  try {
+    console.log('🚀 Initializing WASM module...');
+    
+    // Initialize the image preprocessor
+    imagePreprocessor = new ImagePreprocessor();
+    console.log('✅ ImagePreprocessor initialized');
+    
+    // Initialize WASM
+    await init();
+    console.log('✅ WASM module initialized');
+    
+    // Create Stylizer instance
+    styleTransfer = new Stylizer();
+    console.log('✅ Stylizer instance created');
+    
+    // Load available styles
+    await loadStyles();
+    console.log('✅ Styles loaded');
+    
+    console.log('🎉 WASM module initialization complete!');
+    
+  } catch (error) {
+    console.error('❌ Failed to initialize WASM module:', error);
+    alert('Failed to initialize WASM module. Please refresh the page.');
+  }
+}
+
+async function handleFileUpload(file) {
+    try {
+        console.log('📁 Processing uploaded file:', file.name);
+        
+        // Use the ImagePreprocessor to handle the file
+        const processedImage = await imagePreprocessor.preprocessImage(file, {
+            targetSize: 512,           // ONNX model input size
+            maintainAspectRatio: false, // Force exact 512x512 for WASM compatibility
+            normalize: false,          // Don't normalize for display
+            quality: 0.9               // High quality processing
+        });
+        
+        console.log('✅ Image preprocessing completed:', processedImage.metadata);
+        
+        // Display the processed image
+        const canvasIn = document.getElementById('canvasIn');
+        const ctxIn = canvasIn.getContext('2d');
+        
+        // Clear canvas and draw processed image
+        ctxIn.clearRect(0, 0, canvasIn.width, canvasIn.height);
+        ctxIn.drawImage(processedImage.canvas, 0, 0, canvasIn.width, canvasIn.height);
+        
+        // Store the processed image data for later use
+        window.currentProcessedImage = processedImage;
+        
+        // Update UI
+        document.getElementById('imageInfo').textContent = 
+            `✅ File selected: ${file.name} | Size: ${(file.size / 1024).toFixed(1)} KB | Type: ${file.type}`;
+        
+        console.log('🖼️ Image displayed successfully');
+        
+    } catch (error) {
+        console.error('❌ File upload failed:', error);
+        alert(`File upload failed: ${error.message}`);
+    }
 }
 
 function drawToCanvas(img) {
@@ -354,10 +368,26 @@ async function selectStyle(id) {
       return;
     }
     
-    // Load the style model
-    console.log(`🔄 Loading style model: ${meta.name}`);
-    await styleTransfer.load_style_model(meta.name);
-    console.log(`✅ Style model loaded: ${meta.name}`);
+         // Load the style model
+     console.log(`🔄 Loading style model: ${meta.name}`);
+     console.log(`📁 Model file: ${meta.model_url}`);
+     console.log(`📊 Model metadata:`, meta);
+     
+     try {
+       const metaJson = JSON.stringify(meta);
+       console.log(`📝 Sending metadata to WASM:`, metaJson);
+       
+       styleTransfer.load_model(metaJson);
+       console.log(`✅ Style model loaded: ${meta.name}`);
+       
+       // Verify model was loaded
+       console.log(`🔍 Checking if model is ready...`);
+       
+     } catch (error) {
+       console.error(`❌ Failed to load style model:`, error);
+       modelInfo.textContent = `Error loading model: ${error.message}`;
+       return;
+     }
     
     runBtn.disabled = false;
     runBtn.textContent = '🎨 Stylize';
@@ -371,33 +401,103 @@ async function selectStyle(id) {
 }
 
 async function stylizeOnce() {
+  if (!styleTransfer || !window.currentProcessedImage) {
+    alert('Please upload an image first and ensure WASM is initialized.');
+    return;
+  }
+  
   try {
-    if (!originalImageData || !currentMeta) {
-      console.log('⚠️ Cannot stylize: missing requirements');
-      return;
+    console.log('🎨 Starting style transfer...');
+    
+    // Get the processed image data
+    const processedImage = window.currentProcessedImage;
+    const inputImageData = processedImage.imageData;
+    
+    // Validate the image data
+    const validation = imagePreprocessor.validateImageData(inputImageData);
+    if (!validation.isValid) {
+      throw new Error(`Image validation failed: ${validation.issues.join(', ')}`);
     }
     
-    if (!styleTransfer) {
-      console.warn('⚠️ StyleTransfer not initialized');
-      alert('Style transfer not ready yet. Please wait for WASM module to load.');
-      return;
+    if (validation.warnings.length > 0) {
+      console.warn('⚠️  Image warnings:', validation.warnings);
     }
     
-    console.log('🎨 Starting stylization...');
-    runBtn.disabled = true;
-    runBtn.textContent = '⏳ Processing...';
+    // Get image statistics for debugging
+    const stats = imagePreprocessor.getImageStats(inputImageData);
+    console.log('📊 Image statistics:', stats);
     
-    // Process the image
-    await styleTransfer.process_image_from_canvas(canvasIn);
+            // Convert to Uint8Array for WASM
+        const inputRgba = imagePreprocessor.toUint8Array(inputImageData);
+        const { width, height } = inputImageData;
+        
+        // Ensure dimensions are exactly 512x512 for WASM compatibility
+        if (width !== 512 || height !== 512) {
+            throw new Error(`Invalid input dimensions: ${width}x${height}. Expected: 512x512`);
+        }
+        
+        console.log('🎨 Calling WASM run_style method...');
+        console.log('📊 Input data sample (first 20 values):', inputRgba.slice(0, 20));
+        console.log('📐 Input dimensions:', width, 'x', height);
     
-    console.log('✅ Stylization complete!');
-    runBtn.textContent = '🎨 Stylize';
-    runBtn.disabled = false;
+            // Call WASM style transfer - always use 512x512 for processing
+        const targetSize = 512;
+        const outputRgba = styleTransfer.run_style(inputRgba, targetSize, targetSize);
+        
+        console.log('📊 Output data sample (first 20 values):', outputRgba.slice(0, 20));
+        console.log('📐 Output dimensions:', targetSize, 'x', targetSize);
+        
+        // Check if output is different from input
+        let isDifferent = false;
+        for (let i = 0; i < Math.min(100, inputRgba.length); i++) {
+            if (inputRgba[i] !== outputRgba[i]) {
+                isDifferent = true;
+                break;
+            }
+        }
+        
+        if (!isDifferent) {
+            console.warn('⚠️  Output data appears identical to input - style transfer may not be working');
+        } else {
+            console.log('✅ Output data is different from input - style transfer is working');
+        }
+        
+        // Create output ImageData at exactly 512x512
+        const outputImageData = new ImageData(
+            new Uint8ClampedArray(outputRgba),
+            targetSize,
+            targetSize
+        );
+    
+            // Create output canvas and resize to display dimensions
+        const outputCanvas = imagePreprocessor.createCanvas(outputImageData);
+        const canvasOut = document.getElementById('canvasOut');
+        const ctxOut = canvasOut.getContext('2d');
+        
+        // Clear output canvas
+        ctxOut.clearRect(0, 0, canvasOut.width, canvasOut.height);
+        
+        // Draw the 512x512 stylized image and resize to fit the display canvas
+        ctxOut.drawImage(outputCanvas, 0, 0, canvasOut.width, canvasOut.height);
+    
+    console.log('✅ Style transfer completed successfully');
+    
+    // Show success message
+    const resultInfo = document.getElementById('resultInfo');
+    if (resultInfo) {
+      resultInfo.textContent = '🎨 Style transfer completed!';
+      resultInfo.style.color = '#28a745';
+    }
     
   } catch (error) {
-    console.error('❌ Stylization failed:', error);
-    runBtn.textContent = '❌ Error';
-    runBtn.disabled = false;
-    modelInfo.textContent = `Stylization Error: ${error.message}`;
+    console.error('❌ Style transfer failed:', error);
+    alert(`Style transfer failed: ${error.message}`);
+    
+    // Show error message
+    const resultInfo = document.getElementById('resultInfo');
+    if (resultInfo) {
+      resultInfo.textContent = '❌ Style transfer failed';
+      resultInfo.style.color = '#dc3545';
+    }
   }
 }

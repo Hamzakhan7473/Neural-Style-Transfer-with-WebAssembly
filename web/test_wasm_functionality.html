@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WASM Functionality Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f0f0f0; }
+        .test-box { background: white; padding: 20px; margin: 20px 0; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        button { padding: 10px 20px; margin: 10px; border: none; border-radius: 5px; background: #007bff; color: white; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        #console { background: #000; color: #0f0; padding: 15px; border-radius: 5px; font-family: monospace; max-height: 400px; overflow-y: auto; }
+        canvas { border: 1px solid #ccc; margin: 10px; }
+    </style>
+</head>
+<body>
+    <h1>🧪 WASM Functionality Test</h1>
+    
+    <div class="test-box">
+        <h2>Test 1: Load WASM Module</h2>
+        <button onclick="loadWasmModule()">Load WASM Module</button>
+        <div id="wasmStatus"></div>
+    </div>
+    
+    <div class="test-box">
+        <h2>Test 2: Create Stylizer Instance</h2>
+        <button onclick="createStylizer()" id="createStylizerBtn" disabled>Create Stylizer</button>
+        <div id="stylizerStatus"></div>
+    </div>
+    
+    <div class="test-box">
+        <h2>Test 3: Test Image Processing</h2>
+        <button onclick="testImageProcessing()" id="testProcessingBtn" disabled>Test Processing</button>
+        <div id="processingStatus"></div>
+        <canvas id="testCanvas" width="100" height="100"></canvas>
+    </div>
+    
+    <div class="test-box">
+        <h2>Test 4: Load ONNX Model</h2>
+        <button onclick="testModelLoading()" id="testModelBtn" disabled>Test Model Loading</button>
+        <div id="modelStatus"></div>
+    </div>
+    
+    <div class="test-box">
+        <h2>📊 Console Output</h2>
+        <div id="console"></div>
+    </div>
+
+    <script type="module">
+        import init, { Stylizer } from './pkg/stylizer.js';
+        
+        let stylizer = null;
+        let wasmLoaded = false;
+        
+        const consoleDiv = document.getElementById('console');
+        const wasmStatus = document.getElementById('wasmStatus');
+        const stylizerStatus = document.getElementById('stylizerStatus');
+        const processingStatus = document.getElementById('processingStatus');
+        const modelStatus = document.getElementById('modelStatus');
+        
+        function log(message, type = 'log') {
+            const div = document.createElement('div');
+            div.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            div.style.color = type === 'error' ? '#ff6b6b' : '#51cf66';
+            consoleDiv.appendChild(div);
+            consoleDiv.scrollTop = consoleDiv.scrollHeight;
+        }
+        
+        // Capture console output
+        const originalLog = console.log;
+        const originalError = console.error;
+        
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            log(args.join(' '));
+        };
+        
+        console.error = function(...args) {
+            originalError.apply(console, args);
+            log(args.join(' '), 'error');
+        };
+        
+        // Test 1: Load WASM Module
+        async function loadWasmModule() {
+            try {
+                wasmStatus.textContent = 'Loading WASM module...';
+                wasmStatus.style.color = 'blue';
+                
+                log('🚀 Loading WASM module...');
+                await init();
+                log('✅ WASM module loaded successfully');
+                
+                wasmLoaded = true;
+                wasmStatus.textContent = '✅ WASM module loaded successfully';
+                wasmStatus.style.color = 'green';
+                
+                // Enable next test
+                document.getElementById('createStylizerBtn').disabled = false;
+                
+            } catch (error) {
+                log('❌ Failed to load WASM module:', error);
+                wasmStatus.textContent = `❌ Error: ${error.message}`;
+                wasmStatus.style.color = 'red';
+            }
+        }
+        
+        // Test 2: Create Stylizer Instance
+        function createStylizer() {
+            try {
+                stylizerStatus.textContent = 'Creating Stylizer instance...';
+                stylizerStatus.style.color = 'blue';
+                
+                log('🎨 Creating Stylizer instance...');
+                stylizer = new Stylizer();
+                log('✅ Stylizer instance created:', stylizer);
+                
+                stylizerStatus.textContent = '✅ Stylizer instance created successfully';
+                stylizerStatus.style.color = 'green';
+                
+                // Enable next tests
+                document.getElementById('testProcessingBtn').disabled = false;
+                document.getElementById('testModelBtn').disabled = false;
+                
+            } catch (error) {
+                log('❌ Failed to create Stylizer:', error);
+                stylizerStatus.textContent = `❌ Error: ${error.message}`;
+                stylizerStatus.style.color = 'red';
+            }
+        }
+        
+        // Test 3: Test Image Processing
+        function testImageProcessing() {
+            try {
+                processingStatus.textContent = 'Testing image processing...';
+                processingStatus.style.color = 'blue';
+                
+                log('🧪 Testing image processing...');
+                
+                // Create a simple test image (100x100)
+                const canvas = document.getElementById('testCanvas');
+                const ctx = canvas.getContext('2d');
+                
+                // Draw a simple pattern
+                ctx.fillStyle = 'red';
+                ctx.fillRect(0, 0, 50, 50);
+                ctx.fillStyle = 'blue';
+                ctx.fillRect(50, 50, 50, 50);
+                
+                log('📊 Test image created (100x100)');
+                
+                // Get image data
+                const imageData = ctx.getImageData(0, 0, 100, 100);
+                const inputRgba = new Uint8Array(imageData.data);
+                
+                log('📊 Input data length:', inputRgba.length);
+                log('📊 Input data sample (first 20 values):', inputRgba.slice(0, 20));
+                
+                // Try to process with Stylizer
+                if (stylizer && typeof stylizer.run_style === 'function') {
+                    log('🎨 Calling stylizer.run_style...');
+                    const outputRgba = stylizer.run_style(inputRgba, 100, 100);
+                    
+                    log('📊 Output data length:', outputRgba.length);
+                    log('📊 Output data sample (first 20 values):', outputRgba.slice(0, 20));
+                    
+                    // Check if output is different
+                    let isDifferent = false;
+                    for (let i = 0; i < Math.min(100, inputRgba.length); i++) {
+                        if (inputRgba[i] !== outputRgba[i]) {
+                            isDifferent = true;
+                            break;
+                        }
+                    }
+                    
+                    if (isDifferent) {
+                        log('✅ Output data is different - processing is working!');
+                        processingStatus.textContent = '✅ Image processing test passed!';
+                        processingStatus.style.color = 'green';
+                    } else {
+                        log('⚠️  Output data is identical to input - processing may not be working');
+                        processingStatus.textContent = '⚠️  Processing test inconclusive';
+                        processingStatus.style.color = 'orange';
+                    }
+                } else {
+                    throw new Error('Stylizer or run_style method not available');
+                }
+                
+            } catch (error) {
+                log('❌ Image processing test failed:', error);
+                processingStatus.textContent = `❌ Error: ${error.message}`;
+                processingStatus.style.color = 'red';
+            }
+        }
+        
+        // Test 4: Test Model Loading
+        function testModelLoading() {
+            try {
+                modelStatus.textContent = 'Testing model loading...';
+                modelStatus.style.color = 'blue';
+                
+                log('📚 Testing model loading...');
+                
+                if (stylizer && typeof stylizer.load_model === 'function') {
+                    // Create test metadata
+                    const testMeta = {
+                        id: "test_model",
+                        name: "Test Model",
+                        model_url: "./models/test.onnx",
+                        input_width: 100,
+                        input_height: 100
+                    };
+                    
+                    log('📝 Test metadata:', testMeta);
+                    
+                    const metaJson = JSON.stringify(testMeta);
+                    log('📝 Sending metadata to WASM:', metaJson);
+                    
+                    stylizer.load_model(metaJson);
+                    log('✅ Model loading test completed');
+                    
+                    modelStatus.textContent = '✅ Model loading test completed';
+                    modelStatus.style.color = 'green';
+                } else {
+                    throw new Error('Stylizer or load_model method not available');
+                }
+                
+            } catch (error) {
+                log('❌ Model loading test failed:', error);
+                modelStatus.textContent = `❌ Error: ${error.message}`;
+                modelStatus.style.color = 'red';
+            }
+        }
+        
+        // Auto-run first test on page load
+        window.addEventListener('load', () => {
+            log('🚀 WASM test page loaded');
+            log('💡 Click "Load WASM Module" to start testing');
+        });
+    </script>
+</body>
+</html>

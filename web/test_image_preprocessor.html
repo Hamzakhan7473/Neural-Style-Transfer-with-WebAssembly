@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Preprocessor Test - Neural Style Transfer</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #4f46e5;
+            margin-bottom: 30px;
+        }
+        
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 2px solid #e5e7eb;
+            border-radius: 15px;
+            background: #f9fafb;
+        }
+        
+        .test-section h3 {
+            color: #374151;
+            margin-top: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .test-controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #4f46e5;
+            color: white;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(79, 70, 229, 0.3);
+        }
+        
+        .btn-secondary {
+            background: #6b7280;
+        }
+        
+        .btn-success {
+            background: #10b981;
+        }
+        
+        .btn-warning {
+            background: #f59e0b;
+        }
+        
+        .file-input {
+            border: 2px dashed #d1d5db;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #f9fafb;
+        }
+        
+        .file-input:hover {
+            border-color: #4f46e5;
+            background: rgba(79, 70, 229, 0.05);
+        }
+        
+        .file-input input {
+            display: none;
+        }
+        
+        .canvas-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .canvas-section {
+            text-align: center;
+        }
+        
+        .canvas-section h4 {
+            margin-bottom: 10px;
+            color: #374151;
+        }
+        
+        canvas {
+            max-width: 100%;
+            height: auto;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            background: #f9fafb;
+        }
+        
+        .info-panel {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+        
+        .info-panel h4 {
+            margin-top: 0;
+            color: #374151;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        
+        .info-item {
+            background: white;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .info-item strong {
+            color: #4f46e5;
+        }
+        
+        .log-panel {
+            background: #1f2937;
+            color: #f9fafb;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 12px;
+        }
+        
+        .log-entry {
+            margin-bottom: 5px;
+            padding: 2px 0;
+        }
+        
+        .log-info { color: #60a5fa; }
+        .log-success { color: #34d399; }
+        .log-warning { color: #fbbf24; }
+        .log-error { color: #f87171; }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .status-ready { background: #10b981; }
+        .status-processing { background: #f59e0b; }
+        .status-error { background: #ef4444; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Image Preprocessor Test Suite</h1>
+        
+        <div class="test-section">
+            <h3>
+                <span class="status-indicator" id="statusIndicator">🟢</span>
+                Image Upload & Processing
+            </h3>
+            
+            <div class="file-input" onclick="document.getElementById('fileInput').click()">
+                <input type="file" id="fileInput" accept="image/*" />
+                <div style="font-size: 24px; margin-bottom: 10px;">📸</div>
+                <div>Click to upload an image for testing</div>
+                <div style="font-size: 12px; color: #6b7280; margin-top: 5px;">
+                    Supports: JPEG, PNG, WebP (Max: 10MB)
+                </div>
+            </div>
+            
+            <div class="test-controls">
+                <button class="btn btn-secondary" onclick="testImageValidation()">🔍 Validate Image</button>
+                <button class="btn btn-warning" onclick="testImageResizing()">📏 Test Resizing</button>
+                <button class="btn btn-success" onclick="testNormalization()">🎯 Test Normalization</button>
+                <button class="btn" onclick="testThumbnail()">🖼️ Create Thumbnail</button>
+                <button class="btn btn-secondary" onclick="clearResults()">🗑️ Clear Results</button>
+            </div>
+        </div>
+        
+        <div class="canvas-grid">
+            <div class="canvas-section">
+                <h4>📸 Original Image</h4>
+                <canvas id="originalCanvas" width="300" height="300"></canvas>
+            </div>
+            <div class="canvas-section">
+                <h4>🔄 Processed Image</h4>
+                <canvas id="processedCanvas" width="300" height="300"></canvas>
+            </div>
+            <div class="canvas-section">
+                <h4>🖼️ Thumbnail</h4>
+                <canvas id="thumbnailCanvas" width="150" height="150"></canvas>
+            </div>
+        </div>
+        
+        <div class="info-panel">
+            <h4>📊 Image Information</h4>
+            <div class="info-grid" id="imageInfo">
+                <div class="info-item">
+                    <strong>Status:</strong> <span id="statusText">No image loaded</span>
+                </div>
+                <div class="info-item">
+                    <strong>Dimensions:</strong> <span id="dimensionsText">-</span>
+                </div>
+                <div class="info-item">
+                    <strong>File Size:</strong> <span id="fileSizeText">-</span>
+                </div>
+                <div class="info-item">
+                    <strong>Processing Time:</strong> <span id="processingTimeText">-</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="log-panel">
+            <h4>📝 Processing Log</h4>
+            <div id="logContainer"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        // Import the ImagePreprocessor
+        import './js/imagePreprocessor.js';
+        
+        let imagePreprocessor = null;
+        let currentImage = null;
+        let currentFile = null;
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            try {
+                imagePreprocessor = new ImagePreprocessor();
+                log('✅ ImagePreprocessor initialized successfully', 'success');
+                updateStatus('ready', 'Ready for testing');
+            } catch (error) {
+                log('❌ Failed to initialize ImagePreprocessor: ' + error.message, 'error');
+                updateStatus('error', 'Initialization failed');
+            }
+        });
+        
+        // File input handler
+        document.getElementById('fileInput').addEventListener('change', async (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            currentFile = file;
+            log(`📁 File selected: ${file.name} (${(file.size / 1024).toFixed(1)}KB)`, 'info');
+            
+            try {
+                updateStatus('processing', 'Processing image...');
+                const startTime = performance.now();
+                
+                // Process the image
+                currentImage = await imagePreprocessor.preprocessImage(file, {
+                    targetSize: 512,
+                    maintainAspectRatio: true,
+                    normalize: false,
+                    quality: 0.9
+                });
+                
+                const processingTime = performance.now() - startTime;
+                
+                // Display results
+                displayImage(file, currentImage, processingTime);
+                log(`✅ Image processing completed in ${processingTime.toFixed(2)}ms`, 'success');
+                updateStatus('ready', 'Image processed successfully');
+                
+            } catch (error) {
+                log('❌ Image processing failed: ' + error.message, 'error');
+                updateStatus('error', 'Processing failed');
+            }
+        });
+        
+        function displayImage(file, processedImage, processingTime) {
+            // Display original image
+            const originalCanvas = document.getElementById('originalCanvas');
+            const originalCtx = originalCanvas.getContext('2d');
+            originalCtx.clearRect(0, 0, originalCanvas.width, originalCanvas.height);
+            
+            // Create a temporary canvas to resize original for display
+            const tempCanvas = document.createElement('canvas');
+            const tempCtx = tempCanvas.getContext('2d');
+            tempCanvas.width = processedImage.metadata.originalSize.width;
+            tempCanvas.height = processedImage.metadata.originalSize.height;
+            tempCtx.putImageData(processedImage.imageData, 0, 0);
+            
+            // Draw resized original
+            originalCtx.drawImage(tempCanvas, 0, 0, originalCanvas.width, originalCanvas.height);
+            
+            // Display processed image
+            const processedCanvas = document.getElementById('processedCanvas');
+            const processedCtx = processedCanvas.getContext('2d');
+            processedCtx.clearRect(0, 0, processedCanvas.width, processedCanvas.height);
+            processedCtx.drawImage(processedImage.canvas, 0, 0, processedCanvas.width, processedCanvas.height);
+            
+            // Update info
+            document.getElementById('statusText').textContent = 'Processed successfully';
+            document.getElementById('dimensionsText').textContent = 
+                `${processedImage.metadata.originalSize.width} × ${processedImage.metadata.originalSize.height} → ${processedImage.metadata.processedSize.width} × ${processedImage.metadata.processedSize.height}`;
+            document.getElementById('fileSizeText').textContent = `${(file.size / 1024).toFixed(1)} KB`;
+            document.getElementById('processingTimeText').textContent = `${processingTime.toFixed(2)}ms`;
+        }
+        
+        function testImageValidation() {
+            if (!currentImage) {
+                log('⚠️ No image loaded for validation', 'warning');
+                return;
+            }
+            
+            try {
+                const validation = imagePreprocessor.validateImageData(currentImage.imageData);
+                log('🔍 Image validation results:', 'info');
+                log(`   Valid: ${validation.isValid}`, validation.isValid ? 'success' : 'error');
+                log(`   Dimensions: ${validation.dimensions.width} × ${validation.dimensions.height}`, 'info');
+                log(`   Data length: ${validation.dataLength}`, 'info');
+                
+                if (validation.issues.length > 0) {
+                    log(`   Issues: ${validation.issues.join(', ')}`, 'error');
+                }
+                if (validation.warnings.length > 0) {
+                    log(`   Warnings: ${validation.warnings.join(', ')}`, 'warning');
+                }
+            } catch (error) {
+                log('❌ Validation failed: ' + error.message, 'error');
+            }
+        }
+        
+        function testImageResizing() {
+            if (!currentImage) {
+                log('⚠️ No image loaded for resizing test', 'warning');
+                return;
+            }
+            
+            try {
+                log('📏 Testing image resizing...', 'info');
+                const stats = imagePreprocessor.getImageStats(currentImage.imageData);
+                log(`   Original: ${stats.dimensions.width} × ${stats.dimensions.height}`, 'info');
+                log(`   Pixel count: ${stats.pixelCount.toLocaleString()}`, 'info');
+                log(`   Data size: ${stats.dataSize.megabytes} MB`, 'info');
+                log(`   RGB ranges: R[${stats.rgbRanges.red.min}-${stats.rgbRanges.red.max}], G[${stats.rgbRanges.green.min}-${stats.rgbRanges.green.max}], B[${stats.rgbRanges.blue.min}-${stats.rgbRanges.blue.max}]`, 'info');
+                log(`   Transparency: ${stats.transparency.transparencyPercentage}%`, 'info');
+            } catch (error) {
+                log('❌ Resizing test failed: ' + error.message, 'error');
+            }
+        }
+        
+        function testNormalization() {
+            if (!currentImage) {
+                log('⚠️ No image loaded for normalization test', 'warning');
+                return;
+            }
+            
+            try {
+                log('🎯 Testing pixel normalization...', 'info');
+                const normalizedData = imagePreprocessor.normalizePixels(currentImage.imageData);
+                const originalStats = imagePreprocessor.getImageStats(currentImage.imageData);
+                const normalizedStats = imagePreprocessor.getImageStats(normalizedData);
+                
+                log(`   Original RGB avg: R${originalStats.rgbRanges.red.average}, G${originalStats.rgbRanges.green.average}, B${originalStats.rgbRanges.blue.average}`, 'info');
+                log(`   Normalized RGB avg: R${normalizedStats.rgbRanges.red.average}, G${normalizedStats.rgbRanges.green.average}, B${normalizedStats.rgbRanges.blue.average}`, 'info');
+                log('✅ Normalization test completed', 'success');
+            } catch (error) {
+                log('❌ Normalization test failed: ' + error.message, 'error');
+            }
+        }
+        
+        function testThumbnail() {
+            if (!currentImage) {
+                log('⚠️ No image loaded for thumbnail test', 'warning');
+                return;
+            }
+            
+            try {
+                log('🖼️ Creating thumbnail...', 'info');
+                const thumbnail = imagePreprocessor.createThumbnail(currentImage.imageData, 150);
+                
+                // Display thumbnail
+                const thumbnailCanvas = document.getElementById('thumbnailCanvas');
+                const thumbnailCtx = thumbnailCanvas.getContext('2d');
+                thumbnailCtx.clearRect(0, 0, thumbnailCanvas.width, thumbnailCanvas.height);
+                thumbnailCtx.drawImage(thumbnail, 0, 0);
+                
+                log(`✅ Thumbnail created: ${thumbnail.width} × ${thumbnail.height}`, 'success');
+            } catch (error) {
+                log('❌ Thumbnail creation failed: ' + error.message, 'error');
+            }
+        }
+        
+        function clearResults() {
+            // Clear canvases
+            document.getElementById('originalCanvas').getContext('2d').clearRect(0, 0, 300, 300);
+            document.getElementById('processedCanvas').getContext('2d').clearRect(0, 0, 300, 300);
+            document.getElementById('thumbnailCanvas').getContext('2d').clearRect(0, 0, 150, 150);
+            
+            // Clear info
+            document.getElementById('statusText').textContent = 'No image loaded';
+            document.getElementById('dimensionsText').textContent = '-';
+            document.getElementById('fileSizeText').textContent = '-';
+            document.getElementById('processingTimeText').textContent = '-';
+            
+            // Clear file input
+            document.getElementById('fileInput').value = '';
+            
+            // Reset variables
+            currentImage = null;
+            currentFile = null;
+            
+            log('🗑️ Results cleared', 'info');
+            updateStatus('ready', 'Ready for testing');
+        }
+        
+        function log(message, type = 'info') {
+            const logContainer = document.getElementById('logContainer');
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry log-${type}`;
+            logEntry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logContainer.appendChild(logEntry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+        
+        function updateStatus(status, text) {
+            const indicator = document.getElementById('statusIndicator');
+            const statusText = document.getElementById('statusText');
+            
+            indicator.className = `status-indicator status-${status}`;
+            if (statusText) statusText.textContent = text;
+        }
+    </script>
+</body>
+</html>

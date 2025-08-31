@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Basic JavaScript Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f0f0f0; }
+        .test-box { background: white; padding: 20px; margin: 20px 0; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        button { padding: 10px 20px; margin: 10px; border: none; border-radius: 5px; background: #007bff; color: white; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        #output { background: #f8f9fa; padding: 15px; border-radius: 5px; font-family: monospace; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Basic JavaScript Test</h1>
+    
+    <div class="test-box">
+        <h2>Test 1: Simple JavaScript</h2>
+        <button onclick="testSimpleJS()">Test Simple JS</button>
+        <div id="output"></div>
+    </div>
+    
+    <div class="test-box">
+        <h2>Test 2: DOM Manipulation</h2>
+        <button onclick="testDOM()">Test DOM</button>
+        <div id="domOutput"></div>
+    </div>
+    
+    <div class="test-box">
+        <h2>Test 3: Console Output</h2>
+        <p>Check the browser console (F12 → Console tab) for logs</p>
+        <button onclick="testConsole()">Test Console</button>
+    </div>
+
+    <script>
+        // Simple test function
+        function testSimpleJS() {
+            var output = document.getElementById('output');
+            output.innerHTML = '<strong>✅ JavaScript is working!</strong><br>';
+            output.innerHTML += 'Current time: ' + new Date().toLocaleTimeString() + '<br>';
+            output.innerHTML += '2 + 2 = ' + (2 + 2) + '<br>';
+            output.innerHTML += 'Browser: ' + navigator.userAgent;
+            
+            console.log('✅ Simple JavaScript test passed!');
+        }
+        
+        // DOM test function
+        function testDOM() {
+            var output = document.getElementById('domOutput');
+            var newDiv = document.createElement('div');
+            newDiv.textContent = '✅ DOM manipulation working! Created at: ' + new Date().toLocaleTimeString();
+            newDiv.style.color = 'green';
+            newDiv.style.fontWeight = 'bold';
+            output.appendChild(newDiv);
+            
+            console.log('✅ DOM test passed!');
+        }
+        
+        // Console test function
+        function testConsole() {
+            console.log('🚀 Console test - JavaScript is working!');
+            console.log('📅 Current time:', new Date().toLocaleTimeString());
+            console.log('🌐 Browser info:', navigator.userAgent);
+            console.log('✅ If you see this, JavaScript console is working!');
+            
+            alert('Check the console (F12 → Console tab) for detailed logs!');
+        }
+        
+        // Auto-run test on page load
+        window.addEventListener('load', function() {
+            console.log('🚀 Page loaded successfully!');
+            console.log('🦁 JavaScript is running in this browser!');
+            
+            // Show a simple message
+            var output = document.getElementById('output');
+            output.innerHTML = '<strong>🔄 Page loaded! Click "Test Simple JS" to verify JavaScript is working.</strong>';
+        });
+        
+        // Test if this script block is even running
+        console.log('📝 This script block is executing!');
+        alert('🎉 JavaScript is working! This alert proves JavaScript is running!');
+    </script>
+</body>
+</html>
