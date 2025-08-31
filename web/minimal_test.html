@@ -3,201 +3,114 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Minimal Upload & Style Test</title>
+    <title>Minimal Main.js Test</title>
     <style>
-        body { 
-            font-family: Arial, sans-serif; 
-            padding: 20px; 
-            max-width: 800px; 
-            margin: 0 auto; 
-        }
-        .test-section { 
-            background: #f8f9fa; 
-            padding: 20px; 
-            margin: 20px 0; 
-            border-radius: 8px; 
-            border: 1px solid #dee2e6; 
-        }
-        .success { color: #28a745; font-weight: bold; }
-        .error { color: #dc3545; font-weight: bold; }
-        .info { color: #17a2b8; }
-        .file-upload {
-            border: 2px dashed #007bff;
-            padding: 40px;
-            text-align: center;
-            border-radius: 8px;
-            margin: 20px 0;
-            position: relative;
-            cursor: pointer;
-            background: rgba(0, 123, 255, 0.05);
-        }
-        .file-upload:hover {
-            background: rgba(0, 123, 255, 0.1);
-            border-color: #0056b3;
-        }
-        .file-upload input[type="file"] {
-            position: absolute;
-            inset: 0;
-            opacity: 0;
-            cursor: pointer;
-        }
-        select {
-            padding: 12px;
-            border: 2px solid #007bff;
-            border-radius: 6px;
-            font-size: 16px;
-            margin: 10px 0;
-            min-width: 300px;
-        }
-        #log {
-            background: #f8f9fa;
-            border: 1px solid #dee2e6;
-            padding: 15px;
-            border-radius: 4px;
-            font-family: monospace;
-            white-space: pre-wrap;
-            max-height: 300px;
-            overflow-y: auto;
-            margin-top: 20px;
-        }
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f0f0f0; }
+        .test-box { background: white; padding: 20px; margin: 20px 0; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        #console { background: #000; color: #0f0; padding: 15px; border-radius: 5px; font-family: monospace; max-height: 400px; overflow-y: auto; }
+        .error { color: #ff6b6b; }
+        .success { color: #51cf66; }
     </style>
 </head>
 <body>
-    <h1>🧪 Minimal Upload & Style Test</h1>
+    <h1>🔧 Minimal Main.js Test</h1>
     
-    <div class="test-section">
-        <h2>📁 File Upload Test</h2>
-        <div class="file-upload">
-            <input id="fileInput" type="file" accept="image/*" />
-            <div style="font-size: 18px; color: #007bff;">
-                📁 Click here to upload an image<br>
-                <small style="color: #6c757d;">Supports: JPG, PNG, GIF</small>
-            </div>
-        </div>
-        <div id="fileStatus">No file selected</div>
+    <div class="test-box">
+        <h2>📁 Test: Load main.js</h2>
+        <button onclick="loadMainJS()">Load Main.js</button>
+        <div id="status"></div>
     </div>
     
-    <div class="test-section">
-        <h2>🎭 Style Selection Test</h2>
-        <select id="styleSelect">
-            <option value="">Choose a style...</option>
-            <option value="starry_night">Van Gogh - Starry Night</option>
-            <option value="picasso_cubist">Picasso - Cubist</option>
-            <option value="ukiyo_e">Japanese Ukiyo-e</option>
-            <option value="cyberpunk">Cyberpunk Neon</option>
-            <option value="abstract_expr">Abstract Expressionism</option>
-        </select>
-        <div id="styleStatus">No style selected</div>
+    <div class="test-box">
+        <h2>📊 Console Output</h2>
+        <div id="console"></div>
     </div>
-    
-    <div class="test-section">
-        <h2>📊 Test Results</h2>
-        <div id="testResults">
-            <div id="fileTest">❌ File upload not tested</div>
-            <div id="styleTest">❌ Style selection not tested</div>
-        </div>
-    </div>
-    
-    <div id="log"></div>
 
     <script>
-        const log = document.getElementById('log');
+        const consoleDiv = document.getElementById('console');
+        const statusDiv = document.getElementById('status');
         
-        function addLog(message, type = 'info') {
-            const timestamp = new Date().toLocaleTimeString();
-            const logEntry = `[${timestamp}] ${message}\n`;
-            log.textContent += logEntry;
-            log.scrollTop = log.scrollHeight;
-            console.log(message);
+        function log(message, type = 'log') {
+            const div = document.createElement('div');
+            div.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            div.className = type;
+            consoleDiv.appendChild(div);
+            consoleDiv.scrollTop = consoleDiv.scrollHeight;
         }
         
-        // Test file input
-        const fileInput = document.getElementById('fileInput');
-        const fileStatus = document.getElementById('fileStatus');
-        const fileTest = document.getElementById('fileTest');
+        // Capture console output
+        const originalLog = console.log;
+        const originalError = console.error;
+        const originalWarn = console.warn;
         
-        fileInput.addEventListener('change', (e) => {
-            addLog('📁 File input change event triggered');
-            addLog(`Files selected: ${e.target.files.length}`);
-            
-            if (e.target.files.length > 0) {
-                const file = e.target.files[0];
-                fileStatus.innerHTML = `<span class="success">✅ File selected: ${file.name}</span>`;
-                fileStatus.innerHTML += `<br><span class="info">Size: ${(file.size/1024).toFixed(1)} KB | Type: ${file.type}</span>`;
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            log(args.join(' '), 'success');
+        };
+        
+        console.error = function(...args) {
+            originalError.apply(console, args);
+            log(args.join(' '), 'error');
+        };
+        
+        console.warn = function(...args) {
+            originalWarn.apply(console, args);
+            log(args.join(' '), 'error');
+        };
+        
+        // Test loading main.js
+        async function loadMainJS() {
+            try {
+                statusDiv.textContent = 'Loading main.js...';
+                statusDiv.style.color = 'blue';
                 
-                fileTest.innerHTML = `<span class="success">✅ File upload working!</span>`;
+                log('🔄 Starting to load main.js...');
                 
-                addLog(`📁 File: ${file.name}`);
-                addLog(`📁 Size: ${(file.size/1024).toFixed(1)} KB`);
-                addLog(`📁 Type: ${file.type}`);
+                // Create a script element
+                const script = document.createElement('script');
+                script.type = 'module';
+                script.src = './main.js?v=2';
                 
-                // Test image loading
-                const img = new Image();
-                img.onload = () => {
-                    addLog(`🖼️ Image loaded successfully: ${img.width}x${img.height}`);
-                    fileStatus.innerHTML += `<br><span class="success">🖼️ Image loaded: ${img.width}x${img.height}</span>`;
+                // Add error handling
+                script.onerror = (error) => {
+                    log('❌ Script failed to load: ' + error, 'error');
+                    statusDiv.textContent = '❌ Script failed to load';
+                    statusDiv.style.color = 'red';
                 };
-                img.onerror = () => {
-                    addLog('❌ Failed to load image');
-                    fileStatus.innerHTML += '<br><span class="error">❌ Failed to load image</span>';
-                };
-                img.src = URL.createObjectURL(file);
                 
-            } else {
-                fileStatus.innerHTML = '<span class="info">No file selected</span>';
-                fileTest.innerHTML = `<span class="error">❌ File upload not working</span>`;
+                // Add load handler
+                script.onload = () => {
+                    log('✅ Script loaded successfully', 'success');
+                    statusDiv.textContent = '✅ Script loaded successfully';
+                    statusDiv.style.color = 'green';
+                };
+                
+                // Append to document
+                document.head.appendChild(script);
+                
+                log('📝 Script element added to document');
+                
+            } catch (error) {
+                log('❌ Error loading script: ' + error.message, 'error');
+                statusDiv.textContent = '❌ Error: ' + error.message;
+                statusDiv.style.color = 'red';
             }
+        }
+        
+        // Auto-run on page load
+        window.addEventListener('load', () => {
+            log('🚀 Page loaded, ready to test main.js loading');
         });
         
-        // Test style selection
-        const styleSelect = document.getElementById('styleSelect');
-        const styleStatus = document.getElementById('styleStatus');
-        const styleTest = document.getElementById('styleTest');
-        
-        styleSelect.addEventListener('change', (e) => {
-            addLog(`🎭 Style selection change event triggered: ${e.target.value}`);
-            
-            if (e.target.value) {
-                styleStatus.innerHTML = `<span class="success">✅ Style selected: ${e.target.value}</span>`;
-                styleTest.innerHTML = `<span class="success">✅ Style selection working!</span>`;
-                
-                // Show style details
-                const styleNames = {
-                    'starry_night': 'Van Gogh - Starry Night',
-                    'picasso_cubist': 'Picasso - Cubist',
-                    'ukiyo_e': 'Japanese Ukiyo-e',
-                    'cyberpunk': 'Cyberpunk Neon',
-                    'abstract_expr': 'Abstract Expressionism'
-                };
-                
-                styleStatus.innerHTML += `<br><span class="info">🎨 ${styleNames[e.target.value]}</span>`;
-                
-            } else {
-                styleStatus.innerHTML = '<span class="info">No style selected</span>';
-                styleTest.innerHTML = `<span class="error">❌ Style selection not working</span>`;
-            }
+        // Global error handler
+        window.addEventListener('error', (event) => {
+            log('❌ Global error: ' + event.error.message, 'error');
+            log('❌ Error details: ' + event.filename + ':' + event.lineno, 'error');
         });
         
-        // Initial log
-        addLog('🧪 Minimal test page loaded');
-        addLog('💡 Try uploading an image and selecting a style');
-        addLog('🔍 Check the console for detailed logs');
-        
-        // Check if elements exist
-        addLog('🔍 Checking DOM elements...');
-        if (fileInput) addLog('✅ File input found');
-        else addLog('❌ File input not found');
-        
-        if (styleSelect) addLog('✅ Style select found');
-        else addLog('❌ Style select not found');
-        
-        // Test click events
-        fileInput.addEventListener('click', () => {
-            addLog('🔘 File input clicked');
-        });
-        
-        styleSelect.addEventListener('click', () => {
-            addLog('🔘 Style select clicked');
+        // Unhandled promise rejection
+        window.addEventListener('unhandledrejection', (event) => {
+            log('❌ Unhandled promise rejection: ' + event.reason, 'error');
         });
     </script>
 </body>

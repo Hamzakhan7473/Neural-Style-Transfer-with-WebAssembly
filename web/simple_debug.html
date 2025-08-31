@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Debug Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f0f0f0; }
+        .test-box { background: white; padding: 20px; margin: 20px 0; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        button { padding: 10px 20px; margin: 10px; border: none; border-radius: 5px; background: #007bff; color: white; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        .status { padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .info { background: #d1ecf1; color: #0c5460; }
+        #console { background: #000; color: #0f0; padding: 15px; border-radius: 5px; font-family: monospace; max-height: 300px; overflow-y: auto; }
+    </style>
+</head>
+<body>
+    <h1>🐛 Simple Debug Test</h1>
+    
+    <div class="test-box">
+        <h2>🧪 Test 1: Basic JavaScript</h2>
+        <button onclick="testBasicJS()">Test Basic JS</button>
+        <div id="basicJSStatus" class="status"></div>
+    </div>
+    
+    <div class="test-box">
+        <h2>📁 Test 2: File Access</h2>
+        <button onclick="testFileAccess()">Test File Access</button>
+        <div id="fileStatus" class="status"></div>
+    </div>
+    
+    <div class="test-box">
+        <h2>🎭 Test 3: Style Loading</h2>
+        <button onclick="testStyleLoading()">Test Style Loading</button>
+        <div id="styleStatus" class="status"></div>
+    </div>
+    
+    <div class="test-box">
+        <h2>📊 Console Output</h2>
+        <div id="console"></div>
+    </div>
+
+    <script>
+        // Simple console capture
+        const consoleDiv = document.getElementById('console');
+        const originalLog = console.log;
+        const originalError = console.error;
+        
+        function log(message, type = 'log') {
+            const div = document.createElement('div');
+            div.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            div.style.color = type === 'error' ? '#ff6b6b' : '#51cf66';
+            consoleDiv.appendChild(div);
+            consoleDiv.scrollTop = consoleDiv.scrollHeight;
+        }
+        
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            log(args.join(' '));
+        };
+        
+        console.error = function(...args) {
+            originalError.apply(console, args);
+            log(args.join(' '), 'error');
+        };
+        
+        // Test 1: Basic JavaScript
+        function testBasicJS() {
+            const status = document.getElementById('basicJSStatus');
+            try {
+                console.log('🧪 Testing basic JavaScript...');
+                status.textContent = 'Testing...';
+                status.className = 'status info';
+                
+                // Test basic operations
+                const result = 2 + 2;
+                if (result === 4) {
+                    console.log('✅ Basic math works');
+                }
+                
+                // Test DOM manipulation
+                const testDiv = document.createElement('div');
+                testDiv.textContent = 'Test element';
+                document.body.appendChild(testDiv);
+                document.body.removeChild(testDiv);
+                console.log('✅ DOM manipulation works');
+                
+                status.textContent = '✅ Basic JavaScript is working!';
+                status.className = 'status success';
+                
+            } catch (error) {
+                console.error('❌ Basic JavaScript failed:', error);
+                status.textContent = `❌ Error: ${error.message}`;
+                status.className = 'status error';
+            }
+        }
+        
+        // Test 2: File Access
+        async function testFileAccess() {
+            const status = document.getElementById('fileStatus');
+            try {
+                console.log('📁 Testing file access...');
+                status.textContent = 'Testing...';
+                status.className = 'status info';
+                
+                // Test if we can access the web directory
+                const response = await fetch('./');
+                console.log('📡 Root response status:', response.status);
+                
+                if (response.ok) {
+                    console.log('✅ Can access root directory');
+                }
+                
+                status.textContent = '✅ File access is working!';
+                status.className = 'status success';
+                
+            } catch (error) {
+                console.error('❌ File access failed:', error);
+                status.textContent = `❌ Error: ${error.message}`;
+                status.className = 'status error';
+            }
+        }
+        
+        // Test 3: Style Loading
+        async function testStyleLoading() {
+            const status = document.getElementById('styleStatus');
+            try {
+                console.log('🎭 Testing style loading...');
+                status.textContent = 'Testing...';
+                status.className = 'status info';
+                
+                // Test loading styles.json
+                const response = await fetch('./styles.json');
+                console.log('📡 Styles.json response status:', response.status);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                console.log('📋 Styles data:', data);
+                console.log('📊 Number of styles:', data.styles ? data.styles.length : 'No styles array');
+                
+                if (data.styles && Array.isArray(data.styles)) {
+                    console.log('✅ Styles.json loaded successfully');
+                    status.textContent = `✅ Styles loaded! Found ${data.styles.length} styles`;
+                    status.className = 'status success';
+                } else {
+                    throw new Error('Invalid styles data structure');
+                }
+                
+            } catch (error) {
+                console.error('❌ Style loading failed:', error);
+                status.textContent = `❌ Error: ${error.message}`;
+                status.className = 'status error';
+            }
+        }
+        
+        // Auto-run basic test on page load
+        window.addEventListener('load', () => {
+            console.log('🚀 Page loaded, running basic test...');
+            setTimeout(() => {
+                testBasicJS();
+            }, 100);
+        });
+    </script>
+</body>
+</html>

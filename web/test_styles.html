@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Style Loading Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 20px; border: 1px solid #ccc; }
+        select { padding: 10px; font-size: 16px; margin: 10px 0; }
+        button { padding: 10px 20px; font-size: 16px; margin: 10px; }
+        .status { padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
+        .info { background-color: #d1ecf1; color: #0c5460; }
+    </style>
+</head>
+<body>
+    <h1>🎨 Style Loading Test</h1>
+    
+    <div class="test-section">
+        <h2>📚 Test 1: Load styles.json</h2>
+        <button onclick="testLoadStyles()">Load Styles</button>
+        <div id="loadStatus" class="status"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>🎭 Test 2: Populate Dropdown</h2>
+        <select id="styleSelect">
+            <option value="">Choose a style...</option>
+        </select>
+        <button onclick="testPopulateDropdown()">Populate Dropdown</button>
+        <div id="dropdownStatus" class="status"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>🔍 Test 3: Check DOM Elements</h2>
+        <button onclick="checkDOMElements()">Check Elements</button>
+        <div id="domStatus" class="status"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>📊 Console Output</h2>
+        <div id="consoleOutput" style="background: #f8f9fa; padding: 10px; border-radius: 5px; font-family: monospace; max-height: 300px; overflow-y: auto;"></div>
+    </div>
+
+    <script>
+        // Capture console output
+        const originalLog = console.log;
+        const originalError = console.error;
+        const consoleOutput = document.getElementById('consoleOutput');
+        
+        function addToConsole(message, type = 'log') {
+            const div = document.createElement('div');
+            div.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            div.style.color = type === 'error' ? 'red' : 'black';
+            consoleOutput.appendChild(div);
+            consoleOutput.scrollTop = consoleOutput.scrollHeight;
+        }
+        
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            addToConsole(args.join(' '));
+        };
+        
+        console.error = function(...args) {
+            originalError.apply(console, args);
+            addToConsole(args.join(' '), 'error');
+        };
+        
+        async function testLoadStyles() {
+            const status = document.getElementById('loadStatus');
+            try {
+                console.log('🔄 Testing styles.json loading...');
+                status.textContent = 'Loading...';
+                status.className = 'status info';
+                
+                const response = await fetch('./styles.json');
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                console.log('✅ Styles loaded successfully:', data);
+                console.log('📋 Number of styles:', data.styles.length);
+                
+                status.textContent = `✅ Success! Loaded ${data.styles.length} styles`;
+                status.className = 'status success';
+                
+                // Store for later use
+                window.stylesData = data;
+                
+            } catch (error) {
+                console.error('❌ Failed to load styles:', error);
+                status.textContent = `❌ Error: ${error.message}`;
+                status.className = 'status error';
+            }
+        }
+        
+        function testPopulateDropdown() {
+            const status = document.getElementById('dropdownStatus');
+            const select = document.getElementById('styleSelect');
+            
+            if (!window.stylesData) {
+                status.textContent = '❌ No styles data available. Load styles first.';
+                status.className = 'status error';
+                return;
+            }
+            
+            try {
+                console.log('🔄 Populating dropdown...');
+                status.textContent = 'Populating...';
+                status.className = 'status info';
+                
+                // Clear existing options
+                select.innerHTML = '<option value="">Choose a style...</option>';
+                
+                // Add style options
+                for (const style of window.stylesData.styles) {
+                    const option = document.createElement('option');
+                    option.value = style.id;
+                    option.textContent = `${style.name} (${style.size})`;
+                    select.appendChild(option);
+                    console.log(`➕ Added: ${style.name}`);
+                }
+                
+                status.textContent = `✅ Success! Added ${window.stylesData.styles.length} styles to dropdown`;
+                status.className = 'status success';
+                
+                // Test selection
+                select.addEventListener('change', (e) => {
+                    console.log('🎭 Style selected:', e.target.value);
+                    if (e.target.value) {
+                        const selectedStyle = window.stylesData.styles.find(s => s.id === e.target.value);
+                        console.log('📊 Selected style details:', selectedStyle);
+                    }
+                });
+                
+            } catch (error) {
+                console.error('❌ Failed to populate dropdown:', error);
+                status.textContent = `❌ Error: ${error.message}`;
+                status.className = 'status error';
+            }
+        }
+        
+        function checkDOMElements() {
+            const status = document.getElementById('domStatus');
+            const select = document.getElementById('styleSelect');
+            
+            try {
+                console.log('🔍 Checking DOM elements...');
+                status.textContent = 'Checking...';
+                status.className = 'status info';
+                
+                const elements = {
+                    'Style Select': select,
+                    'Load Status': document.getElementById('loadStatus'),
+                    'Dropdown Status': document.getElementById('dropdownStatus'),
+                    'Console Output': consoleOutput
+                };
+                
+                let allFound = true;
+                for (const [name, element] of Object.entries(elements)) {
+                    if (element) {
+                        console.log(`✅ ${name}: Found`);
+                    } else {
+                        console.log(`❌ ${name}: Not found`);
+                        allFound = false;
+                    }
+                }
+                
+                if (allFound) {
+                    status.textContent = '✅ All DOM elements found successfully';
+                    status.className = 'status success';
+                } else {
+                    status.textContent = '❌ Some DOM elements are missing';
+                    status.className = 'status error';
+                }
+                
+            } catch (error) {
+                console.error('❌ Error checking DOM elements:', error);
+                status.textContent = `❌ Error: ${error.message}`;
+                status.className = 'status error';
+            }
+        }
+        
+        // Auto-run tests on page load
+        window.addEventListener('load', () => {
+            console.log('🚀 Page loaded, running initial tests...');
+            setTimeout(() => {
+                checkDOMElements();
+                testLoadStyles();
+            }, 500);
+        });
+    </script>
+</body>
+</html>

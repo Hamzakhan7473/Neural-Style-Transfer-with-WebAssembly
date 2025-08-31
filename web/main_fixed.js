@@ -14,7 +14,6 @@ let webcamRAF = 0;
 
 // Wait for DOM to be fully loaded
 document.addEventListener('DOMContentLoaded', () => {
-  alert('🚀 JavaScript is running! DOM loaded successfully!');
   console.log('🌐 DOM loaded, initializing elements...');
   
   // Get DOM elements
@@ -73,62 +72,9 @@ document.addEventListener('DOMContentLoaded', () => {
   // Set up event listeners FIRST (before WASM loading)
   setupEventListeners();
   
-  // Load styles immediately for UI functionality
-  loadStylesImmediately();
-  
   // Try to initialize WASM module
   initializeWasmModule();
 });
-
-async function loadStylesImmediately() {
-  try {
-    console.log('📚 Loading styles immediately for UI...');
-    console.log('🔍 Style selector element:', styleSel);
-    console.log('🔍 Model info element:', modelInfo);
-    
-    // Add cache-busting parameter
-    const timestamp = Date.now();
-    const response = await fetch(`./styles.json?t=${timestamp}`);
-    console.log('📡 Fetch response status:', response.status);
-    
-    if (!response.ok) {
-      throw new Error(`Failed to fetch styles.json: ${response.status} ${response.statusText}`);
-    }
-    
-    const data = await response.text();
-    console.log('📄 Raw response data length:', data.length);
-    
-    registry = await response.json();
-    console.log('📋 Styles loaded immediately:', registry.styles);
-    console.log('📊 Registry object keys:', Object.keys(registry));
-    
-    if (!registry.styles || !Array.isArray(registry.styles)) {
-      throw new Error('Invalid styles data structure');
-    }
-    
-    // Populate style dropdown immediately
-    console.log('🎨 Populating style dropdown...');
-    styleSel.innerHTML = '<option value="">Choose a style...</option>';
-    
-    for (const item of registry.styles) {
-      console.log('➕ Processing style item:', item);
-      const opt = document.createElement('option');
-      opt.value = item.id;
-      opt.textContent = `${item.name} (${item.size})`;
-      styleSel.appendChild(opt);
-      console.log(`✅ Added style option: ${item.name} with value: ${item.id}`);
-    }
-    
-    console.log('✅ Styles loaded and dropdown populated immediately');
-    console.log('🔍 Final dropdown options count:', styleSel.options.length);
-    modelInfo.textContent = '✅ Styles loaded! Select a style and upload an image to begin.';
-    
-  } catch (error) {
-    console.error('❌ Failed to load styles immediately:', error);
-    console.error('❌ Error details:', error.stack);
-    modelInfo.textContent = `Error loading styles: ${error.message}`;
-  }
-}
 
 function setupEventListeners() {
   console.log('🔗 Setting up event listeners...');
