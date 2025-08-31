@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple WASM Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .success { color: green; }
+        .error { color: red; }
+        .info { color: blue; }
+        button { padding: 10px 20px; margin: 10px; }
+        #log { background: #f0f0f0; padding: 15px; margin: 20px 0; font-family: monospace; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Simple WASM Test</h1>
+    
+    <button id="loadBtn">Load WASM Module</button>
+    <button id="testBtn" disabled>Test Basic Functions</button>
+    
+    <div id="status"></div>
+    <div id="log"></div>
+
+    <script type="module">
+        import init, { StyleTransfer } from './pkg/neural_style_transfer.js';
+        
+        let styleTransfer = null;
+        const log = document.getElementById('log');
+        const status = document.getElementById('status');
+        
+        function addLog(message) {
+            log.textContent += message + '\n';
+            console.log(message);
+        }
+        
+        document.getElementById('loadBtn').addEventListener('click', async () => {
+            try {
+                addLog('🚀 Loading WASM module...');
+                await init();
+                addLog('✅ WASM module loaded successfully');
+                
+                addLog('🎨 Creating StyleTransfer instance...');
+                styleTransfer = new StyleTransfer('test');
+                addLog('✅ StyleTransfer instance created');
+                
+                status.innerHTML = '<span class="success">✅ Module loaded!</span>';
+                document.getElementById('testBtn').disabled = false;
+                
+            } catch (error) {
+                addLog(`❌ Error: ${error.message}`);
+                status.innerHTML = `<span class="error">❌ Failed: ${error.message}</span>`;
+            }
+        });
+        
+        document.getElementById('testBtn').addEventListener('click', async () => {
+            try {
+                addLog('🧪 Testing basic functions...');
+                
+                // Test WebGPU initialization
+                addLog('🔧 Testing WebGPU...');
+                await styleTransfer.initialize_webgpu();
+                addLog('✅ WebGPU initialized');
+                
+                // Test style strength
+                addLog('🎛️ Testing style strength...');
+                styleTransfer.set_style_strength(0.8);
+                addLog('✅ Style strength set');
+                
+                status.innerHTML = '<span class="success">✅ All tests passed!</span>';
+                
+            } catch (error) {
+                addLog(`❌ Test failed: ${error.message}`);
+                status.innerHTML = `<span class="error">❌ Test failed: ${error.message}</span>`;
+            }
+        });
+        
+        addLog('🧪 Simple test page loaded');
+        addLog('💡 Click "Load WASM Module" to begin');
+    </script>
+</body>
+</html>

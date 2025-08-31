@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Main App - AI Style Transfer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body { 
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #1f2937;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header { 
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 24px 32px;
+            margin-bottom: 32px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 32px;
+            margin-bottom: 32px;
+        }
+
+        .controls-panel {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 24px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        .control-group {
+            margin-bottom: 24px;
+        }
+
+        .control-group h3 {
+            margin-bottom: 12px;
+            color: #374151;
+        }
+
+        .file-upload {
+            border: 2px dashed #6366f1;
+            padding: 32px;
+            text-align: center;
+            border-radius: 12px;
+            position: relative;
+            cursor: pointer;
+            background: rgba(99, 102, 241, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .file-upload:hover {
+            border-color: #4f46e5;
+            background: rgba(99, 102, 241, 0.1);
+        }
+
+        .file-upload input[type="file"] {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .upload-icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+
+        .upload-text {
+            color: #6366f1;
+            font-weight: 500;
+        }
+
+        .style-selector {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 16px;
+            background: white;
+            transition: border-color 0.3s ease;
+        }
+
+        .style-selector:focus {
+            outline: none;
+            border-color: #6366f1;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            flex: 1;
+        }
+
+        .btn-primary {
+            background: #6366f1;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #4f46e5;
+        }
+
+        .btn-secondary {
+            background: #6b7280;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #4b5563;
+        }
+
+        .canvas-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 24px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        .canvas-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+
+        .canvas-section h3 {
+            margin-bottom: 16px;
+            text-align: center;
+            color: #374151;
+        }
+
+        .canvas-wrapper {
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            overflow: hidden;
+            background: #f9fafb;
+            min-height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        canvas {
+            max-width: 100%;
+            max-height: 100%;
+            display: block;
+        }
+
+        #debugLog {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            color: #00ff00;
+        }
+
+        .status {
+            padding: 8px 12px;
+            border-radius: 6px;
+            margin: 8px 0;
+            font-weight: 500;
+        }
+
+        .status.success { background: rgba(34, 197, 94, 0.1); color: #16a34a; }
+        .status.error { background: rgba(239, 68, 68, 0.1); color: #dc2626; }
+        .status.info { background: rgba(59, 130, 246, 0.1); color: #2563eb; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎨 AI Style Transfer - Debug Version</h1>
+            <p>Testing basic functionality without WASM complexity</p>
+        </header>
+
+        <main class="main-content">
+            <aside class="controls-panel">
+                <div class="control-group">
+                    <h3>📁 Upload Image</h3>
+                    <div class="file-upload">
+                        <input id="file" type="file" accept="image/*" />
+                        <div class="upload-icon">📸</div>
+                        <div class="upload-text">Click to upload or drag & drop</div>
+                    </div>
+                    <div id="fileStatus" class="status info">No file selected</div>
+                </div>
+
+                <div class="control-group">
+                    <h3>🎭 Style Selection</h3>
+                    <select id="style" class="style-selector">
+                        <option value="">Choose a style...</option>
+                        <option value="starry_night">Van Gogh - Starry Night</option>
+                        <option value="picasso_cubist">Picasso - Cubist</option>
+                        <option value="ukiyo_e">Japanese Ukiyo-e</option>
+                        <option value="cyberpunk">Cyberpunk Neon</option>
+                        <option value="abstract_expr">Abstract Expressionism</option>
+                    </select>
+                    <div id="styleStatus" class="status info">No style selected</div>
+                </div>
+
+                <div class="action-buttons">
+                    <button id="runBtn" class="btn btn-primary">🎨 Stylize</button>
+                    <button id="resetBtn" class="btn btn-secondary">🔄 Reset</button>
+                </div>
+
+                <div id="testStatus" class="status info">Ready to test</div>
+            </aside>
+
+            <section class="canvas-container">
+                <div class="canvas-grid">
+                    <div class="canvas-section">
+                        <h3>📸 Original Image</h3>
+                        <div class="canvas-wrapper">
+                            <canvas id="canvasIn"></canvas>
+                        </div>
+                    </div>
+                    <div class="canvas-section">
+                        <h3>🎨 Stylized Result</h3>
+                        <div class="canvas-wrapper">
+                            <canvas id="canvasOut"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <div id="debugLog"></div>
+    </div>
+
+    <script>
+        // Debug logging
+        const debugLog = document.getElementById('debugLog');
+        
+        function addLog(message) {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = `[${timestamp}] ${message}\n`;
+            debugLog.textContent += logEntry;
+            debugLog.scrollTop = debugLog.scrollHeight;
+            console.log(message);
+        }
+        
+        // Wait for DOM to be fully loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            addLog('🌐 DOM loaded, initializing debug version...');
+            
+            // Get DOM elements
+            const fileInput = document.getElementById('file');
+            const styleSel = document.getElementById('style');
+            const runBtn = document.getElementById('runBtn');
+            const resetBtn = document.getElementById('resetBtn');
+            const fileStatus = document.getElementById('fileStatus');
+            const styleStatus = document.getElementById('styleStatus');
+            const testStatus = document.getElementById('testStatus');
+            const canvasIn = document.getElementById('canvasIn');
+            const canvasOut = document.getElementById('canvasOut');
+            
+            // Debug: Check if elements exist
+            addLog('🔍 Checking DOM elements...');
+            addLog(`File input: ${fileInput ? '✅ Found' : '❌ Not found'}`);
+            addLog(`Style selector: ${styleSel ? '✅ Found' : '❌ Not found'}`);
+            addLog(`Canvas In: ${canvasIn ? '✅ Found' : '❌ Not found'}`);
+            addLog(`Canvas Out: ${canvasOut ? '✅ Found' : '❌ Not found'}`);
+            
+            if (!fileInput || !styleSel || !canvasIn || !canvasOut) {
+                addLog('❌ Critical elements missing, cannot proceed');
+                return;
+            }
+            
+            // Get canvas contexts
+            const ctxIn = canvasIn.getContext('2d');
+            const ctxOut = canvasOut.getContext('2d');
+            
+            if (!ctxIn || !ctxOut) {
+                addLog('❌ Canvas contexts not available');
+                return;
+            }
+            
+            addLog('✅ All elements found, setting up event listeners...');
+            
+            // File input event listener
+            fileInput.addEventListener('change', (e) => {
+                addLog('📁 File input change event triggered');
+                addLog(`Files selected: ${e.target.files.length}`);
+                
+                if (!e.target.files.length) {
+                    fileStatus.textContent = 'No file selected';
+                    fileStatus.className = 'status info';
+                    return;
+                }
+                
+                const file = e.target.files[0];
+                fileStatus.innerHTML = `<span class="status success">✅ File selected: ${file.name}</span>`;
+                fileStatus.innerHTML += `<br><span class="status info">Size: ${(file.size/1024).toFixed(1)} KB | Type: ${file.type}</span>`;
+                
+                addLog(`📁 File: ${file.name}, Size: ${(file.size/1024).toFixed(1)} KB, Type: ${file.type}`);
+                
+                // Load and display image
+                const img = new Image();
+                img.onload = () => {
+                    addLog(`🖼️ Image loaded: ${img.width}x${img.height}`);
+                    
+                    // Draw to canvas
+                    const maxW = 300, maxH = 300;
+                    let {width:w, height:h} = img;
+                    const scale = Math.min(maxW / w, maxH / h, 1);
+                    w = Math.round(w * scale); h = Math.round(h * scale);
+                    
+                    canvasIn.width = w; canvasIn.height = h;
+                    canvasOut.width = w; canvasOut.height = h;
+                    
+                    ctxIn.drawImage(img, 0, 0, w, h);
+                    ctxOut.clearRect(0, 0, w, h);
+                    
+                    fileStatus.innerHTML += `<br><span class="status success">🖼️ Image displayed: ${w}x${h}</span>`;
+                    testStatus.textContent = 'Image loaded successfully!';
+                    testStatus.className = 'status success';
+                };
+                
+                img.onerror = () => {
+                    addLog('❌ Failed to load image');
+                    fileStatus.innerHTML += '<br><span class="status error">❌ Failed to load image</span>';
+                    testStatus.textContent = 'Image loading failed';
+                    testStatus.className = 'status error';
+                };
+                
+                img.src = URL.createObjectURL(file);
+            });
+            
+            // Style selection event listener
+            styleSel.addEventListener('change', (e) => {
+                addLog(`🎭 Style selection change event triggered: ${e.target.value}`);
+                
+                if (e.target.value) {
+                    styleStatus.innerHTML = `<span class="status success">✅ Style selected: ${e.target.value}</span>`;
+                    testStatus.textContent = 'Style selected! Ready to stylize.';
+                    testStatus.className = 'status success';
+                } else {
+                    styleStatus.textContent = 'No style selected';
+                    styleStatus.className = 'status info';
+                    testStatus.textContent = 'Select a style to continue';
+                    testStatus.className = 'status info';
+                }
+            });
+            
+            // Run button event listener
+            runBtn.addEventListener('click', () => {
+                addLog('🎨 Stylize button clicked');
+                testStatus.textContent = 'Stylize button working! (WASM not loaded in debug version)';
+                testStatus.className = 'status success';
+            });
+            
+            // Reset button event listener
+            resetBtn.addEventListener('click', () => {
+                addLog('🔄 Reset button clicked');
+                ctxOut.clearRect(0, 0, canvasOut.width, canvasOut.height);
+                testStatus.textContent = 'Canvas reset successfully!';
+                testStatus.className = 'status success';
+            });
+            
+            addLog('✅ Event listeners set up successfully');
+            addLog('🎯 Debug version ready - try uploading an image and selecting a style');
+        });
+    </script>
+</body>
+</html>

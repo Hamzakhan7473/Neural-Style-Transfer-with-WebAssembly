@@ -1,7 +1,7 @@
 {
   "styles": [
     {
-      "id": "vangogh",
+      "id": "starry_night",
       "name": "Van Gogh - Starry Night",
       "size": "8.5MB",
       "model_url": "./models/starry_night.onnx",
@@ -14,7 +14,7 @@
       "scale": 255.0
     },
     {
-      "id": "picasso",
+      "id": "picasso_cubist",
       "name": "Picasso - Cubist",
       "size": "8.2MB",
       "model_url": "./models/picasso_cubist.onnx",
@@ -27,7 +27,7 @@
       "scale": 255.0
     },
     {
-      "id": "ukiyo-e",
+      "id": "ukiyo_e",
       "name": "Japanese Ukiyo-e",
       "size": "7.8MB",
       "model_url": "./models/ukiyo_e.onnx",
@@ -53,7 +53,7 @@
       "scale": 255.0
     },
     {
-      "id": "abstract",
+      "id": "abstract_expr",
       "name": "Abstract Expressionism",
       "size": "8.7MB",
       "model_url": "./models/abstract_expr.onnx",

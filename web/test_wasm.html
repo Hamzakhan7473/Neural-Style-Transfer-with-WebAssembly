@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WASM Module Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .success { color: #28a745; }
+        .error { color: #dc3545; }
+        .info { color: #17a2b8; }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #0056b3; }
+        button:disabled { background: #6c757d; cursor: not-allowed; }
+        #log {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 WebAssembly Module Test</h1>
+    
+    <div class="test-section">
+        <h2>1. Module Loading Test</h2>
+        <button id="loadBtn">Load WASM Module</button>
+        <button id="testBtn" disabled>Test Module Functions</button>
+        <div id="loadStatus"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>2. Style Transfer Test</h2>
+        <button id="styleTestBtn" disabled>Test Style Transfer</button>
+        <div id="styleStatus"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>3. Model Loading Test</h2>
+        <button id="modelTestBtn" disabled>Test Model Loading</button>
+        <div id="modelStatus"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>4. Console Log</h2>
+        <div id="log"></div>
+    </div>
+
+    <script type="module">
+        import init, { StyleTransfer } from './pkg/neural_style_transfer.js';
+        
+        let styleTransfer = null;
+        const log = document.getElementById('log');
+        
+        function addLog(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = `[${timestamp}] ${message}\n`;
+            log.textContent += logEntry;
+            log.scrollTop = log.scrollHeight;
+            console.log(message);
+        }
+        
+        // Test 1: Module Loading
+        document.getElementById('loadBtn').addEventListener('click', async () => {
+            const status = document.getElementById('loadStatus');
+            status.innerHTML = '<span class="info">Loading...</span>';
+            
+            try {
+                addLog('🚀 Initializing WASM module...');
+                await init();
+                addLog('✅ WASM module initialized successfully');
+                
+                addLog('🎨 Creating StyleTransfer instance...');
+                styleTransfer = new StyleTransfer('testCanvas');
+                addLog('✅ StyleTransfer instance created');
+                
+                status.innerHTML = '<span class="success">✅ Module loaded successfully!</span>';
+                document.getElementById('testBtn').disabled = false;
+                document.getElementById('styleTestBtn').disabled = false;
+                document.getElementById('modelTestBtn').disabled = false;
+                
+            } catch (error) {
+                addLog(`❌ Module loading failed: ${error.message}`);
+                status.innerHTML = `<span class="error">❌ Failed: ${error.message}</span>`;
+            }
+        });
+        
+        // Test 2: Basic Functions
+        document.getElementById('testBtn').addEventListener('click', async () => {
+            const status = document.getElementById('loadStatus');
+            status.innerHTML = '<span class="info">Testing functions...</span>';
+            
+            try {
+                addLog('🧪 Testing basic module functions...');
+                
+                // Test if the module has expected methods
+                const methods = Object.getOwnPropertyNames(Object.getPrototypeOf(styleTransfer));
+                addLog(`📋 Available methods: ${methods.join(', ')}`);
+                
+                // Test WebGPU initialization
+                addLog('🔧 Testing WebGPU initialization...');
+                await styleTransfer.initialize_webgpu();
+                addLog('✅ WebGPU initialized successfully');
+                
+                status.innerHTML = '<span class="success">✅ Basic functions working!</span>';
+                
+            } catch (error) {
+                addLog(`❌ Function test failed: ${error.message}`);
+                status.innerHTML = `<span class="error">❌ Function test failed: ${error.message}</span>`;
+            }
+        });
+        
+        // Test 3: Style Transfer
+        document.getElementById('styleTestBtn').addEventListener('click', async () => {
+            const status = document.getElementById('styleStatus');
+            status.innerHTML = '<span class="info">Testing style transfer...</span>';
+            
+            try {
+                addLog('🎨 Testing style transfer functionality...');
+                
+                // Test style strength setting
+                addLog('🎛️ Testing style strength setting...');
+                styleTransfer.set_style_strength(0.8);
+                addLog('✅ Style strength set successfully');
+                
+                status.innerHTML = '<span class="success">✅ Style transfer functions working!</span>';
+                
+            } catch (error) {
+                addLog(`❌ Style transfer test failed: ${error.message}`);
+                status.innerHTML = `<span class="error">❌ Style transfer test failed: ${error.message}</span>`;
+            }
+        });
+        
+        // Test 4: Model Loading
+        document.getElementById('modelTestBtn').addEventListener('click', async () => {
+            const status = document.getElementById('modelStatus');
+            status.innerHTML = '<span class="info">Testing model loading...</span>';
+            
+            try {
+                addLog('📚 Testing model loading...');
+                
+                // Test loading a style model
+                addLog('🔄 Attempting to load a test style model...');
+                await styleTransfer.load_style_model('test_style');
+                addLog('✅ Style model loading function working!');
+                
+                status.innerHTML = '<span class="success">✅ Model loading functions working!</span>';
+                
+            } catch (error) {
+                addLog(`❌ Model loading test failed: ${error.message}`);
+                status.innerHTML = `<span class="error">❌ Model loading test failed: ${error.message}</span>`;
+            }
+        });
+        
+        // Initial log
+        addLog('🧪 WASM Test Page Loaded');
+        addLog('💡 Click "Load WASM Module" to begin testing');
+    </script>
+</body>
+</html>
