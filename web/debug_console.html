@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Console - Neural Style Transfer</title>
+    <style>
+        body {
+            font-family: monospace;
+            margin: 20px;
+            background: #1e1e1e;
+            color: #fff;
+        }
+
+        .console {
+            background: #000;
+            padding: 20px;
+            border-radius: 5px;
+            height: 400px;
+            overflow-y: auto;
+        }
+
+        .log {
+            margin: 5px 0;
+        }
+
+        .error {
+            color: #ff6b6b;
+        }
+
+        .success {
+            color: #51cf66;
+        }
+
+        .info {
+            color: #74c0fc;
+        }
+
+        .warning {
+            color: #ffd43b;
+        }
+
+        button {
+            padding: 10px 15px;
+            margin: 5px;
+            background: #495057;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #6c757d;
+        }
+
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #495057;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>🐛 Debug Console - Neural Style Transfer</h1>
+
+    <div class="test-section">
+        <h2>Test Controls</h2>
+        <button onclick="testMainApp()">Test Main App</button>
+        <button onclick="testWasmOnly()">Test WASM Only</button>
+        <button onclick="testOnnxOnly()">Test ONNX Only</button>
+        <button onclick="clearConsole()">Clear Console</button>
+        <button onclick="checkErrors()">Check for Errors</button>
+    </div>
+
+    <div class="test-section">
+        <h2>Console Output</h2>
+        <div id="console" class="console"></div>
+    </div>
+
+    <script>
+        let errorCount = 0;
+        let logCount = 0;
+
+        // Override console methods to capture output
+        const originalConsole = {
+            log: console.log,
+            error: console.error,
+            warn: console.warn,
+            info: console.info
+        };
+
+        function addToConsole(message, type = 'log') {
+            const consoleDiv = document.getElementById('console');
+            const logEntry = document.createElement('div');
+            logEntry.className = `log ${type}`;
+            logEntry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            consoleDiv.appendChild(logEntry);
+            consoleDiv.scrollTop = consoleDiv.scrollHeight;
+
+            if (type === 'error') errorCount++;
+            logCount++;
+        }
+
+        console.log = function (...args) {
+            originalConsole.log(...args);
+            addToConsole(args.join(' '), 'info');
+        };
+
+        console.error = function (...args) {
+            originalConsole.error(...args);
+            addToConsole(args.join(' '), 'error');
+        };
+
+        console.warn = function (...args) {
+            originalConsole.warn(...args);
+            addToConsole(args.join(' '), 'warning');
+        };
+
+        console.info = function (...args) {
+            originalConsole.info(...args);
+            addToConsole(args.join(' '), 'info');
+        };
+
+        function clearConsole() {
+            document.getElementById('console').innerHTML = '';
+            errorCount = 0;
+            logCount = 0;
+        }
+
+        function checkErrors() {
+            addToConsole(`Total logs: ${logCount}, Errors: ${errorCount}`, errorCount > 0 ? 'error' : 'success');
+        }
+
+        async function testWasmOnly() {
+            addToConsole('=== Testing WASM Module Only ===', 'info');
+            try {
+                addToConsole('Importing WASM module...', 'info');
+                const wasmModule = await import('./pkg/neural_style_transfer.js');
+                addToConsole(`WASM module imported successfully. Exports: ${Object.keys(wasmModule).join(', ')}`, 'success');
+
+                addToConsole('Initializing WASM...', 'info');
+                await wasmModule.default();
+                wasmModule.init_panic_hook();
+                addToConsole('WASM initialized successfully!', 'success');
+
+                // Test functions
+                if (wasmModule.preprocess_image_data) {
+                    addToConsole('✅ preprocess_image_data function available', 'success');
+                }
+                if (wasmModule.postprocess_image_data) {
+                    addToConsole('✅ postprocess_image_data function available', 'success');
+                }
+                if (wasmModule.blend_images) {
+                    addToConsole('✅ blend_images function available', 'success');
+                }
+
+            } catch (error) {
+                addToConsole(`❌ WASM Error: ${error.message}`, 'error');
+                console.error('WASM error details:', error);
+            }
+        }
+
+        async function testOnnxOnly() {
+            addToConsole('=== Testing ONNX Runtime Only ===', 'info');
+            try {
+                addToConsole('Loading ONNX Runtime...', 'info');
+
+                if (typeof window.ort === 'undefined') {
+                    await loadOnnxRuntime();
+                }
+
+                const ort = window.ort;
+
+                // Check if ONNX runtime is properly initialized
+                if (!ort) {
+                    throw new Error('ONNX Runtime not available');
+                }
+
+                addToConsole('✅ ONNX Runtime loaded successfully!', 'success');
+
+                // Test basic functionality with safe property access
+                let versionInfo = 'Unknown';
+                let envInfo = 'Unknown';
+
+                try {
+                    // Try different ways to get version info with safe access
+                    if (ort.env && ort.env.versions) {
+                        try {
+                            versionInfo = JSON.stringify(ort.env.versions);
+                        } catch (e) {
+                            versionInfo = 'Available (JSON stringify failed)';
+                        }
+                    } else if (ort.version) {
+                        versionInfo = ort.version;
+                    } else {
+                        versionInfo = 'Available (version info not accessible)';
+                    }
+
+                    // Get environment info with safe property access
+                    if (ort.env) {
+                        envInfo = 'Available';
+                        try {
+                            if (ort.env.backends) {
+                                envInfo += ` (backends: ${Object.keys(ort.env.backends).join(', ')})`;
+                            }
+                        } catch (e) {
+                            envInfo += ' (backends info unavailable)';
+                        }
+                    } else {
+                        envInfo = 'Not available';
+                    }
+                } catch (e) {
+                    console.warn('Error accessing ONNX properties:', e);
+                    versionInfo = 'Available (version check failed)';
+                    envInfo = `Error: ${e.message}`;
+                }
+
+                addToConsole(`ONNX Runtime version: ${versionInfo}`, 'info');
+                addToConsole(`ONNX Runtime environment: ${envInfo}`, 'info');
+
+                // Test basic inference session creation capability
+                if (typeof ort.InferenceSession === 'function') {
+                    addToConsole('✅ InferenceSession class available', 'success');
+                }
+
+                // Test tensor creation
+                if (typeof ort.Tensor === 'function') {
+                    addToConsole('✅ Tensor class available', 'success');
+                }
+
+                // Test model loading
+                addToConsole('Testing model download...', 'info');
+                const response = await fetch('./models/mosaic-9.onnx');
+                if (response.ok) {
+                    const arrayBuffer = await response.arrayBuffer();
+                    addToConsole(`✅ Model downloaded: ${(arrayBuffer.byteLength / 1024 / 1024).toFixed(2)} MB`, 'success');
+                } else {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+
+            } catch (error) {
+                addToConsole(`❌ ONNX Error: ${error.message}`, 'error');
+                console.error('ONNX error details:', error);
+            }
+        }
+
+        // Improved ONNX Runtime loader
+        async function loadOnnxRuntime() {
+            return new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+
+                // Try multiple CDN sources for better reliability
+                const cdnUrls = [
+                    'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.18.0/dist/ort.min.js',
+                    'https://unpkg.com/onnxruntime-web@1.18.0/dist/ort.min.js',
+                    'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.17.0/dist/ort.min.js'
+                ];
+
+                let currentUrlIndex = 0;
+
+                const tryLoad = () => {
+                    if (currentUrlIndex >= cdnUrls.length) {
+                        reject(new Error('Failed to load ONNX Runtime from all CDN sources'));
+                        return;
+                    }
+
+                    script.src = cdnUrls[currentUrlIndex];
+                    addToConsole(`Attempting to load ONNX Runtime from: ${script.src}`, 'info');
+
+                    script.onload = () => {
+                        addToConsole('ONNX Runtime script loaded, waiting for initialization...', 'info');
+
+                        // Wait for the ort object to be fully available
+                        const checkAvailability = (attempts = 0) => {
+                            if (typeof window.ort !== 'undefined') {
+                                addToConsole('ONNX Runtime fully initialized', 'success');
+                                resolve();
+                            } else if (attempts < 50) { // Max 5 seconds
+                                setTimeout(() => checkAvailability(attempts + 1), 100);
+                            } else {
+                                reject(new Error('ONNX Runtime loaded but ort object not available after 5 seconds'));
+                            }
+                        };
+
+                        checkAvailability();
+                    };
+
+                    script.onerror = () => {
+                        addToConsole(`Failed to load from ${script.src}, trying next source...`, 'warning');
+                        currentUrlIndex++;
+                        tryLoad();
+                    };
+
+                    // Remove previous script if it exists
+                    if (script.parentNode) {
+                        script.parentNode.removeChild(script);
+                    }
+
+                    document.head.appendChild(script);
+                };
+
+                tryLoad();
+            });
+        }
+
+        async function testMainApp() {
+            addToConsole('=== Testing Main Application ===', 'info');
+            try {
+                // Load the main app script
+                addToConsole('Loading main application...', 'info');
+
+                // Create a test environment
+                const testDiv = document.createElement('div');
+                testDiv.innerHTML = `
+                    <div id="uploadArea">Upload Area</div>
+                    <input type="file" id="fileInput" accept="image/*">
+                    <button id="webcamBtn">Webcam</button>
+                    <div id="styleGrid">Style Grid</div>
+                    <input type="range" id="styleStrength" min="0" max="1" value="0.8">
+                    <span id="strengthValue">0.8</span>
+                    <button id="stylizeBtn">Stylize</button>
+                    <button id="resetBtn">Reset</button>
+                    <button id="downloadBtn">Download</button>
+                    <div id="originalContainer">Original</div>
+                    <div id="resultContainer">Result</div>
+                    <div id="processingOverlay">Processing</div>
+                    <span id="processingTime">-</span>
+                    <span id="modelSize">-</span>
+                    <div id="status">
+                        <span id="statusDot"></span>
+                        <span id="statusText">Loading...</span>
+                    </div>
+                `;
+                document.body.appendChild(testDiv);
+
+                // Load the main app script
+                const script = document.createElement('script');
+                script.type = 'module';
+                script.src = './app.js';
+                script.onload = () => {
+                    addToConsole('Main app script loaded successfully', 'success');
+                };
+                script.onerror = (error) => {
+                    addToConsole(`❌ Main app script error: ${error.message}`, 'error');
+                };
+                document.head.appendChild(script);
+
+            } catch (error) {
+                addToConsole(`❌ Main App Error: ${error.message}`, 'error');
+                console.error('Main app error details:', error);
+            }
+        }
+
+        // Auto-run basic tests
+        window.addEventListener('load', function () {
+            addToConsole('=== Debug Console Started ===', 'info');
+            addToConsole('Page loaded, ready for testing', 'success');
+
+            // Auto-test WASM and ONNX
+            setTimeout(testWasmOnly, 1000);
+            setTimeout(testOnnxOnly, 2000);
+        });
+
+        // Global error handler
+        window.addEventListener('error', function (event) {
+            addToConsole(`❌ Global Error: ${event.message} at ${event.filename}:${event.lineno}`, 'error');
+        });
+
+        window.addEventListener('unhandledrejection', function (event) {
+            addToConsole(`❌ Unhandled Promise Rejection: ${event.reason}`, 'error');
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,114 @@
+{
+  "name": "Neural Style Transfer",
+  "short_name": "StyleTransfer",
+  "description": "AI-powered image style transfer using Rust and WebAssembly",
+  "start_url": "./",
+  "display": "standalone",
+  "theme_color": "#667eea",
+  "background_color": "#ffffff",
+  "orientation": "portrait-primary",
+  "scope": "./",
+  "lang": "en-US",
+  "categories": ["photo", "graphics", "utilities"],
+  "screenshots": [
+    {
+      "src": "./screenshots/desktop-1.png",
+      "sizes": "1280x800",
+      "type": "image/png",
+      "platform": "wide"
+    },
+    {
+      "src": "./screenshots/mobile-1.png", 
+      "sizes": "375x812",
+      "type": "image/png",
+      "platform": "narrow"
+    }
+  ],
+  "icons": [
+    {
+      "src": "./icons/icon-72.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./icons/icon-96.png",
+      "sizes": "96x96", 
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./icons/icon-128.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./icons/icon-144.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./icons/icon-152.png",
+      "sizes": "152x152",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./icons/icon-384.png",
+      "sizes": "384x384",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Quick Style Transfer",
+      "short_name": "Quick Style",
+      "description": "Start styling images immediately",
+      "url": "./?quick=true",
+      "icons": [
+        {
+          "src": "./icons/shortcut-style.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "Webcam Mode",
+      "short_name": "Webcam",
+      "description": "Real-time style transfer with webcam",
+      "url": "./?mode=webcam",
+      "icons": [
+        {
+          "src": "./icons/shortcut-webcam.png",
+          "sizes": "96x96"
+        }
+      ]
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false,
+  "edge_side_panel": {
+    "preferred_width": 400
+  },
+  "protocol_handlers": [
+    {
+      "protocol": "web+styletransfer",
+      "url": "./?share=%s"
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 [workspace]
 members = [
-  "crates/neural-style-transfer"
+  "rust-core"
 ]
 resolver = "2"
 

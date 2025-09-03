@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Frontend Test - Neural Style Transfer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .success {
+            color: green;
+        }
+
+        .error {
+            color: red;
+        }
+
+        .info {
+            color: blue;
+        }
+
+        button {
+            padding: 10px 15px;
+            margin: 5px;
+            cursor: pointer;
+        }
+
+        #uploadArea {
+            border: 2px dashed #ccc;
+            padding: 20px;
+            text-align: center;
+            margin: 10px 0;
+        }
+
+        #uploadArea.dragover {
+            border-color: #007bff;
+            background: #f8f9fa;
+        }
+
+        #webcamContainer {
+            margin: 10px 0;
+        }
+
+        video {
+            max-width: 300px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>🎨 Frontend Test - Neural Style Transfer</h1>
+
+    <div class="test-section">
+        <h2>1. WASM Module Test</h2>
+        <div id="wasmStatus">Testing...</div>
+        <button onclick="testWasm()">Test WASM Import</button>
+    </div>
+
+    <div class="test-section">
+        <h2>2. File Upload Test</h2>
+        <div id="uploadArea">
+            <p>📁 Click to upload or drag & drop an image</p>
+            <input type="file" id="fileInput" accept="image/*" style="display: none;">
+        </div>
+        <div id="uploadStatus">No file selected</div>
+    </div>
+
+    <div class="test-section">
+        <h2>3. Webcam Test</h2>
+        <button id="webcamBtn">📷 Start Webcam</button>
+        <div id="webcamContainer" style="display: none;">
+            <video id="webcamVideo" autoplay playsinline></video>
+            <br>
+            <button id="captureBtn">Capture Photo</button>
+        </div>
+        <div id="webcamStatus">Webcam not started</div>
+    </div>
+
+    <div class="test-section">
+        <h2>4. ONNX Runtime Test</h2>
+        <div id="onnxStatus">Testing...</div>
+        <button onclick="testOnnx()">Test ONNX Runtime</button>
+    </div>
+
+    <div class="test-section">
+        <h2>5. Model Loading Test</h2>
+        <div id="modelStatus">Testing...</div>
+        <button onclick="testModel()">Test Model Download</button>
+    </div>
+
+    <script>
+        let wasmModule = null;
+        let ort = null;
+
+        // Test WASM module
+        async function testWasm() {
+            const status = document.getElementById('wasmStatus');
+            try {
+                status.innerHTML = '<span class="info">Importing WASM module...</span>';
+                wasmModule = await import('./pkg/neural_style_transfer.js');
+                status.innerHTML = '<span class="success">✅ WASM module imported successfully!</span>';
+                console.log('WASM exports:', Object.keys(wasmModule));
+
+                // Test initialization
+                status.innerHTML = '<span class="info">Initializing WASM...</span>';
+                await wasmModule.default();
+                wasmModule.init_panic_hook();
+                status.innerHTML = '<span class="success">✅ WASM initialized and ready!</span>';
+            } catch (error) {
+                status.innerHTML = `<span class="error">❌ WASM Error: ${error.message}</span>`;
+                console.error('WASM error:', error);
+            }
+        }
+
+        // Test ONNX Runtime
+        async function testOnnx() {
+            const status = document.getElementById('onnxStatus');
+            try {
+                status.innerHTML = '<span class="info">Loading ONNX Runtime...</span>';
+
+                if (typeof window.ort === 'undefined') {
+                    await loadOnnxRuntime();
+                }
+
+                ort = window.ort;
+
+                // Check if ONNX runtime is properly initialized
+                if (!ort) {
+                    throw new Error('ONNX Runtime not available');
+                }
+
+                // Test basic functionality with proper error handling
+                let versionInfo = 'Unknown';
+                let envInfo = 'Unknown';
+
+                try {
+                    // Try different ways to get version info
+                    if (ort.env && ort.env.versions) {
+                        versionInfo = JSON.stringify(ort.env.versions);
+                    } else if (ort.version) {
+                        versionInfo = ort.version;
+                    } else {
+                        versionInfo = 'Available (version info not accessible)';
+                    }
+
+                    // Get environment info with safe property access
+                    if (ort.env) {
+                        envInfo = 'Available';
+                        try {
+                            if (ort.env.backends) {
+                                envInfo += ` (backends: ${Object.keys(ort.env.backends).join(', ')})`;
+                            }
+                        } catch (e) {
+                            envInfo += ' (backends info unavailable)';
+                        }
+                    } else {
+                        envInfo = 'Not available';
+                    }
+                } catch (e) {
+                    console.warn('Error accessing ONNX properties:', e);
+                    versionInfo = 'Available (version check failed)';
+                    envInfo = `Error: ${e.message}`;
+                }
+
+                status.innerHTML = '<span class="success">✅ ONNX Runtime loaded successfully!</span>';
+                console.log('ONNX Runtime available:', { version: versionInfo, env: envInfo });
+
+                // Test basic inference session creation capability
+                if (typeof ort.InferenceSession === 'function') {
+                    status.innerHTML += '<br><span class="success">✅ InferenceSession class available</span>';
+                }
+
+                // Test tensor creation
+                if (typeof ort.Tensor === 'function') {
+                    status.innerHTML += '<br><span class="success">✅ Tensor class available</span>';
+                }
+
+            } catch (error) {
+                status.innerHTML = `<span class="error">❌ ONNX Error: ${error.message}</span>`;
+                console.error('ONNX error:', error);
+            }
+        }
+
+        // Improved ONNX Runtime loader
+        async function loadOnnxRuntime() {
+            return new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+
+                // Try multiple CDN sources for better reliability
+                const cdnUrls = [
+                    'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.18.0/dist/ort.min.js',
+                    'https://unpkg.com/onnxruntime-web@1.18.0/dist/ort.min.js',
+                    'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.17.0/dist/ort.min.js'
+                ];
+
+                let currentUrlIndex = 0;
+
+                const tryLoad = () => {
+                    if (currentUrlIndex >= cdnUrls.length) {
+                        reject(new Error('Failed to load ONNX Runtime from all CDN sources'));
+                        return;
+                    }
+
+                    script.src = cdnUrls[currentUrlIndex];
+                    console.log(`Attempting to load ONNX Runtime from: ${script.src}`);
+
+                    script.onload = () => {
+                        console.log('ONNX Runtime script loaded, waiting for initialization...');
+
+                        // Wait for the ort object to be fully available
+                        const checkAvailability = (attempts = 0) => {
+                            if (typeof window.ort !== 'undefined') {
+                                console.log('ONNX Runtime fully initialized');
+                                resolve();
+                            } else if (attempts < 50) { // Max 5 seconds
+                                setTimeout(() => checkAvailability(attempts + 1), 100);
+                            } else {
+                                reject(new Error('ONNX Runtime loaded but ort object not available after 5 seconds'));
+                            }
+                        };
+
+                        checkAvailability();
+                    };
+
+                    script.onerror = () => {
+                        console.warn(`Failed to load from ${script.src}, trying next source...`);
+                        currentUrlIndex++;
+                        tryLoad();
+                    };
+
+                    // Remove previous script if it exists
+                    if (script.parentNode) {
+                        script.parentNode.removeChild(script);
+                    }
+
+                    document.head.appendChild(script);
+                };
+
+                tryLoad();
+            });
+        }
+
+        // Test model download
+        async function testModel() {
+            const status = document.getElementById('modelStatus');
+            try {
+                status.innerHTML = '<span class="info">Downloading test model...</span>';
+                const response = await fetch('./models/mosaic-9.onnx');
+                if (response.ok) {
+                    const arrayBuffer = await response.arrayBuffer();
+                    status.innerHTML = `<span class="success">✅ Model downloaded: ${(arrayBuffer.byteLength / 1024 / 1024).toFixed(2)} MB</span>`;
+                } else {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+            } catch (error) {
+                status.innerHTML = `<span class="error">❌ Model Error: ${error.message}</span>`;
+                console.error('Model error:', error);
+            }
+        }
+
+        // File upload handling
+        document.addEventListener('DOMContentLoaded', function () {
+            const uploadArea = document.getElementById('uploadArea');
+            const fileInput = document.getElementById('fileInput');
+            const uploadStatus = document.getElementById('uploadStatus');
+
+            uploadArea.addEventListener('click', () => fileInput.click());
+
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.classList.add('dragover');
+            });
+
+            uploadArea.addEventListener('dragleave', () => {
+                uploadArea.classList.remove('dragover');
+            });
+
+            uploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadArea.classList.remove('dragover');
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    handleFile(files[0]);
+                }
+            });
+
+            fileInput.addEventListener('change', (e) => {
+                if (e.target.files.length > 0) {
+                    handleFile(e.target.files[0]);
+                }
+            });
+
+            function handleFile(file) {
+                if (file.type.startsWith('image/')) {
+                    uploadStatus.innerHTML = `<span class="success">✅ File selected: ${file.name} (${(file.size / 1024).toFixed(1)} KB)</span>`;
+
+                    // Create preview
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const img = document.createElement('img');
+                        img.src = e.target.result;
+                        img.style.maxWidth = '200px';
+                        img.style.marginTop = '10px';
+                        uploadStatus.appendChild(img);
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    uploadStatus.innerHTML = `<span class="error">❌ Please select an image file</span>`;
+                }
+            }
+        });
+
+        // Webcam handling
+        document.addEventListener('DOMContentLoaded', function () {
+            const webcamBtn = document.getElementById('webcamBtn');
+            const webcamContainer = document.getElementById('webcamContainer');
+            const webcamVideo = document.getElementById('webcamVideo');
+            const captureBtn = document.getElementById('captureBtn');
+            const webcamStatus = document.getElementById('webcamStatus');
+            let stream = null;
+
+            webcamBtn.addEventListener('click', async () => {
+                try {
+                    webcamStatus.innerHTML = '<span class="info">Requesting webcam access...</span>';
+                    stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                    webcamVideo.srcObject = stream;
+                    webcamContainer.style.display = 'block';
+                    webcamStatus.innerHTML = '<span class="success">✅ Webcam started successfully!</span>';
+                } catch (error) {
+                    webcamStatus.innerHTML = `<span class="error">❌ Webcam error: ${error.message}</span>`;
+                    console.error('Webcam error:', error);
+                }
+            });
+
+            captureBtn.addEventListener('click', () => {
+                const canvas = document.createElement('canvas');
+                canvas.width = webcamVideo.videoWidth;
+                canvas.height = webcamVideo.videoHeight;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(webcamVideo, 0, 0);
+
+                const img = document.createElement('img');
+                img.src = canvas.toDataURL();
+                img.style.maxWidth = '200px';
+                img.style.marginTop = '10px';
+                webcamStatus.appendChild(img);
+                webcamStatus.innerHTML += '<br><span class="success">✅ Photo captured!</span>';
+            });
+        });
+
+        // Auto-run tests
+        window.addEventListener('load', function () {
+            setTimeout(testWasm, 500);
+            setTimeout(testOnnx, 1000);
+            setTimeout(testModel, 1500);
+        });
+    </script>
+</body>
+
+</html>

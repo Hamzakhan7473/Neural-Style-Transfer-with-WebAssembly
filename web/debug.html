@@ -1,185 +1,161 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UI Debug Test</title>
+    <title>Debug - Neural Style Transfer</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            max-width: 800px;
-            margin: 0 auto;
             padding: 20px;
-            background: #f5f5f5;
         }
-        .test-section {
-            background: white;
-            padding: 20px;
-            margin: 20px 0;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
         }
-        .success { color: #28a745; }
-        .error { color: #dc3545; }
-        .info { color: #17a2b8; }
+
+        .success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+
         button {
-            background: #007bff;
-            color: white;
-            border: none;
             padding: 10px 20px;
-            border-radius: 4px;
-            cursor: pointer;
             margin: 5px;
         }
-        button:hover { background: #0056b3; }
+
         #log {
             background: #f8f9fa;
-            border: 1px solid #dee2e6;
-            padding: 15px;
-            border-radius: 4px;
+            padding: 10px;
+            border-radius: 5px;
             font-family: monospace;
             white-space: pre-wrap;
-            max-height: 400px;
-            overflow-y: auto;
-        }
-        .file-upload {
-            border: 2px dashed #ddd;
-            padding: 20px;
-            text-align: center;
-            border-radius: 8px;
-            margin: 20px 0;
-            position: relative;
-            cursor: pointer;
-        }
-        .file-upload:hover {
-            border-color: #007bff;
-            background: rgba(0, 123, 255, 0.05);
-        }
-        .file-upload input[type="file"] {
-            position: absolute;
-            inset: 0;
-            opacity: 0;
-            cursor: pointer;
-        }
-        select {
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 16px;
-            margin: 10px 0;
         }
     </style>
 </head>
+
 <body>
-    <h1>🔍 UI Debug Test</h1>
-    
-    <div class="test-section">
-        <h2>1. File Upload Test</h2>
-        <div class="file-upload">
-            <input id="fileInput" type="file" accept="image/*" />
-            <div>📁 Click to upload image</div>
-        </div>
-        <div id="fileStatus">No file selected</div>
-    </div>
-    
-    <div class="test-section">
-        <h2>2. Style Selection Test</h2>
-        <select id="styleSelect">
-            <option value="">Choose a style...</option>
-            <option value="starry_night">Van Gogh - Starry Night</option>
-            <option value="picasso_cubist">Picasso - Cubist</option>
-            <option value="ukiyo_e">Japanese Ukiyo-e</option>
-            <option value="cyberpunk">Cyberpunk Neon</option>
-            <option value="abstract_expr">Abstract Expressionism</option>
-        </select>
-        <div id="styleStatus">No style selected</div>
-    </div>
-    
-    <div class="test-section">
-        <h2>3. Event Listener Test</h2>
-        <button id="testBtn">Test Event Listeners</button>
-        <div id="eventStatus"></div>
-    </div>
-    
-    <div class="test-section">
-        <h2>4. Console Log</h2>
-        <div id="log"></div>
+    <h1>🔍 Neural Style Transfer Debug</h1>
+
+    <div id="status" class="status warning">Initializing...</div>
+
+    <div>
+        <button onclick="testWasm()">Test WASM</button>
+        <button onclick="testOnnx()">Test ONNX Runtime</button>
+        <button onclick="testModel()">Test Model Download</button>
+        <button onclick="clearLog()">Clear Log</button>
     </div>
 
-    <script>
-        const log = document.getElementById('log');
-        
-        function addLog(message, type = 'info') {
+    <div id="log"></div>
+
+    <script type="module">
+        let logElement = document.getElementById('log');
+        let statusElement = document.getElementById('status');
+
+        function log(message) {
             const timestamp = new Date().toLocaleTimeString();
-            const logEntry = `[${timestamp}] ${message}\n`;
-            log.textContent += logEntry;
-            log.scrollTop = log.scrollHeight;
+            logElement.textContent += `[${timestamp}] ${message}\n`;
             console.log(message);
         }
-        
-        // Test file input
-        const fileInput = document.getElementById('fileInput');
-        const fileStatus = document.getElementById('fileStatus');
-        
-        fileInput.addEventListener('change', (e) => {
-            addLog('📁 File input change event triggered');
-            if (e.target.files.length > 0) {
-                const file = e.target.files[0];
-                fileStatus.innerHTML = `<span class="success">✅ File selected: ${file.name} (${(file.size/1024).toFixed(1)} KB)</span>`;
-                addLog(`📁 File selected: ${file.name}, size: ${(file.size/1024).toFixed(1)} KB`);
-                
-                // Test image loading
-                const img = new Image();
-                img.onload = () => {
-                    addLog(`🖼️ Image loaded: ${img.width}x${img.height}`);
-                    fileStatus.innerHTML += `<br><span class="info">🖼️ Image dimensions: ${img.width}x${img.height}</span>`;
-                };
-                img.onerror = () => {
-                    addLog('❌ Failed to load image');
-                    fileStatus.innerHTML += '<br><span class="error">❌ Failed to load image</span>';
-                };
-                img.src = URL.createObjectURL(file);
-            } else {
-                fileStatus.innerHTML = '<span class="info">No file selected</span>';
+
+        function updateStatus(message, type = 'warning') {
+            statusElement.textContent = message;
+            statusElement.className = `status ${type}`;
+        }
+
+        window.testWasm = async function () {
+            try {
+                log('Testing WASM module...');
+                const wasmModule = await import('./pkg/neural_style_transfer.js');
+                log('WASM module imported successfully');
+                log('Available exports:', Object.keys(wasmModule));
+
+                // Check if default export exists
+                if (!wasmModule.default) {
+                    throw new Error('Default export not found. Available exports: ' + Object.keys(wasmModule).join(', '));
+                }
+
+                const init = wasmModule.default; // Default export is the init function
+                log('Calling init function...');
+                await init();
+                log('WASM module initialized');
+
+                wasmModule.init_panic_hook();
+                log('Panic hook set');
+
+                updateStatus('WASM module working!', 'success');
+            } catch (error) {
+                log(`WASM error: ${error.message}`);
+                log(`Error stack: ${error.stack}`);
+                updateStatus('WASM failed', 'error');
             }
-        });
-        
-        // Test style selection
-        const styleSelect = document.getElementById('styleSelect');
-        const styleStatus = document.getElementById('styleStatus');
-        
-        styleSelect.addEventListener('change', (e) => {
-            addLog(`🎭 Style selection change event triggered: ${e.target.value}`);
-            if (e.target.value) {
-                styleStatus.innerHTML = `<span class="success">✅ Style selected: ${e.target.value}</span>`;
-            } else {
-                styleStatus.innerHTML = '<span class="info">No style selected</span>';
+        };
+
+        window.testOnnx = async function () {
+            try {
+                log('Testing ONNX Runtime...');
+
+                // Load ONNX Runtime
+                if (typeof window.ort === 'undefined') {
+                    log('Loading ONNX Runtime from CDN...');
+                    await new Promise((resolve, reject) => {
+                        const script = document.createElement('script');
+                        script.src = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.19.0/dist/ort.webgpu.min.js';
+                        script.onload = resolve;
+                        script.onerror = reject;
+                        document.head.appendChild(script);
+                    });
+                    log('ONNX Runtime loaded from CDN');
+                }
+
+                log('ONNX Runtime available');
+                log(`ONNX Runtime version: ${window.ort?.env?.wasm?.numThreads || 'unknown'}`);
+
+                updateStatus('ONNX Runtime working!', 'success');
+            } catch (error) {
+                log(`ONNX Runtime error: ${error.message}`);
+                updateStatus('ONNX Runtime failed', 'error');
             }
-        });
-        
-        // Test button
-        const testBtn = document.getElementById('testBtn');
-        const eventStatus = document.getElementById('eventStatus');
-        
-        testBtn.addEventListener('click', () => {
-            addLog('🔘 Test button clicked');
-            eventStatus.innerHTML = '<span class="success">✅ Event listeners are working!</span>';
-        });
-        
-        // Initial log
-        addLog('🧪 UI Debug Test Page Loaded');
-        addLog('💡 Try uploading an image and selecting a style');
-        
-        // Check if elements exist
-        addLog('🔍 Checking DOM elements...');
-        if (fileInput) addLog('✅ File input found');
-        else addLog('❌ File input not found');
-        
-        if (styleSelect) addLog('✅ Style select found');
-        else addLog('❌ Style select not found');
-        
-        if (testBtn) addLog('✅ Test button found');
-        else addLog('❌ Test button not found');
+        };
+
+        window.testModel = async function () {
+            try {
+                log('Testing model download...');
+                const response = await fetch('./models/mosaic-9.onnx');
+                if (response.ok) {
+                    const size = response.headers.get('content-length');
+                    log(`Model download successful: ${size} bytes`);
+                    updateStatus('Model download working!', 'success');
+                } else {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+            } catch (error) {
+                log(`Model download error: ${error.message}`);
+                updateStatus('Model download failed', 'error');
+            }
+        };
+
+        window.clearLog = function () {
+            logElement.textContent = '';
+        };
+
+        // Auto-run tests
+        log('Debug page loaded');
+        updateStatus('Ready for testing', 'success');
     </script>
 </body>
+
 </html>

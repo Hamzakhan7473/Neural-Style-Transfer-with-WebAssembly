@@ -1,521 +1,120 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>AI Style Transfer — Rust + WASM</title>
-  <link rel="manifest" href="manifest.webmanifest" />
-  <meta name="theme-color" content="#6366f1" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body { 
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      min-height: 100vh;
-      color: #1f2937;
-      line-height: 1.6;
-    }
-
-    .container {
-      max-width: 1400px;
-      margin: 0 auto;
-      padding: 20px;
-    }
-
-    header { 
-      background: rgba(255, 255, 255, 0.95);
-      backdrop-filter: blur(10px);
-      border-radius: 20px;
-      padding: 24px 32px;
-      margin-bottom: 32px;
-      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      flex-wrap: wrap;
-    }
-
-    .logo {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .logo-icon {
-      width: 40px;
-      height: 40px;
-      background: linear-gradient(135deg, #6366f1, #8b5cf6);
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      font-size: 20px;
-      font-weight: 700;
-    }
-
-    .logo-text h1 {
-      font-size: 28px;
-      font-weight: 700;
-      background: linear-gradient(135deg, #6366f1, #8b5cf6);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-
-    .logo-text p {
-      font-size: 14px;
-      color: #6b7280;
-      font-weight: 500;
-    }
-
-    .badges {
-      display: flex;
-      gap: 8px;
-      margin-left: auto;
-    }
-
-    .badge { 
-      font-size: 12px;
-      font-weight: 600;
-      color: #6366f1;
-      background: rgba(99, 102, 241, 0.1);
-      padding: 6px 12px;
-      border-radius: 20px;
-      border: 1px solid rgba(99, 102, 241, 0.2);
-    }
-
-    .main-content {
-      display: grid;
-      grid-template-columns: 1fr 2fr;
-      gap: 32px;
-      margin-bottom: 32px;
-    }
-
-    .controls-panel {
-      background: rgba(255, 255, 255, 0.95);
-      backdrop-filter: blur(10px);
-      border-radius: 20px;
-      padding: 32px;
-      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-      height: fit-content;
-    }
-
-    .control-group {
-      margin-bottom: 24px;
-    }
-
-    .control-group h3 {
-      font-size: 16px;
-      font-weight: 600;
-      color: #374151;
-      margin-bottom: 12px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .control-group h3::before {
-      content: '';
-      width: 4px;
-      height: 16px;
-      background: linear-gradient(135deg, #6366f1, #8b5cf6);
-      border-radius: 2px;
-    }
-
-    .file-upload {
-      position: relative;
-      border: 2px dashed #d1d5db;
-      border-radius: 12px;
-      padding: 32px 16px;
-      text-align: center;
-      transition: all 0.3s ease;
-      cursor: pointer;
-      background: #f9fafb;
-    }
-
-    .file-upload:hover {
-      border-color: #6366f1;
-      background: rgba(99, 102, 241, 0.05);
-    }
-
-    .file-upload input[type="file"] {
-      position: absolute;
-      inset: 0;
-      opacity: 0;
-      cursor: pointer;
-    }
-
-    .upload-icon {
-      font-size: 32px;
-      color: #9ca3af;
-      margin-bottom: 8px;
-    }
-
-    .upload-text {
-      color: #6b7280;
-      font-weight: 500;
-    }
-
-    .style-selector {
-      width: 100%;
-      padding: 12px 16px;
-      border: 2px solid #e5e7eb;
-      border-radius: 12px;
-      font-size: 14px;
-      font-weight: 500;
-      color: #374151;
-      background: white;
-      transition: all 0.3s ease;
-    }
-
-    .style-selector:focus {
-      outline: none;
-      border-color: #6366f1;
-      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-    }
-
-    .strength-control {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .strength-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .strength-value {
-      font-weight: 600;
-      color: #6366f1;
-      font-size: 18px;
-    }
-
-    .strength-slider {
-      width: 100%;
-      height: 6px;
-      border-radius: 3px;
-      background: #e5e7eb;
-      outline: none;
-      -webkit-appearance: none;
-    }
-
-    .strength-slider::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      appearance: none;
-      width: 20px;
-      height: 20px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, #6366f1, #8b5cf6);
-      cursor: pointer;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    }
-
-    .strength-slider::-moz-range-thumb {
-      width: 20px;
-      height: 20px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, #6366f1, #8b5cf6);
-      cursor: pointer;
-      border: none;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    }
-
-    .action-buttons {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      margin-top: 24px;
-    }
-
-    .btn {
-      padding: 12px 20px;
-      border: none;
-      border-radius: 12px;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-    }
-
-    .btn-primary {
-      background: linear-gradient(135deg, #6366f1, #8b5cf6);
-      color: white;
-    }
-
-    .btn-primary:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.4);
-    }
-
-    .btn-secondary {
-      background: #f3f4f6;
-      color: #374151;
-      border: 2px solid #e5e7eb;
-    }
-
-    .btn-secondary:hover {
-      background: #e5e7eb;
-      border-color: #d1d5db;
-    }
-
-    .btn-success {
-      background: linear-gradient(135deg, #10b981, #059669);
-      color: white;
-    }
-
-    .btn-success:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 10px 20px -5px rgba(16, 185, 129, 0.4);
-    }
-
-    .canvas-container {
-      background: rgba(255, 255, 255, 0.95);
-      backdrop-filter: blur(10px);
-      border-radius: 20px;
-      padding: 32px;
-      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-    }
-
-    .canvas-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 24px;
-    }
-
-    .canvas-section h3 {
-      font-size: 18px;
-      font-weight: 600;
-      color: #374151;
-      margin-bottom: 16px;
-      text-align: center;
-    }
-
-    .canvas-wrapper {
-      position: relative;
-      border-radius: 16px;
-      overflow: hidden;
-      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-    }
-
-    canvas, video {
-      width: 100%;
-      height: auto;
-      display: block;
-      background: #f9fafb;
-      border: 2px solid #e5e7eb;
-    }
-
-    .webcam-toggle {
-      margin-top: 16px;
-      width: 100%;
-      padding: 12px 20px;
-      background: linear-gradient(135deg, #f59e0b, #d97706);
-      color: white;
-      border: none;
-      border-radius: 12px;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
-
-    .webcam-toggle:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 10px 20px -5px rgba(245, 158, 11, 0.4);
-    }
-
-    .model-info {
-      background: #f8fafc;
-      border: 1px solid #e2e8f0;
-      border-radius: 12px;
-      padding: 16px;
-      margin-top: 24px;
-    }
-
-    .model-info h4 {
-      font-size: 14px;
-      font-weight: 600;
-      color: #374151;
-      margin-bottom: 8px;
-    }
-
-    .model-info pre {
-      font-size: 12px;
-      color: #6b7280;
-      white-space: pre-wrap;
-      font-family: 'Monaco', 'Menlo', monospace;
-      background: white;
-      padding: 12px;
-      border-radius: 8px;
-      border: 1px solid #e2e8f0;
-    }
-
-    .tip {
-      background: rgba(99, 102, 241, 0.1);
-      border: 1px solid rgba(99, 102, 241, 0.2);
-      border-radius: 12px;
-      padding: 16px;
-      margin-top: 24px;
-      text-align: center;
-    }
-
-    .tip p {
-      color: #6366f1;
-      font-weight: 500;
-      font-size: 14px;
-    }
-
-    .image-info, .result-info {
-      margin-top: 12px;
-      padding: 8px 12px;
-      border-radius: 8px;
-      font-size: 14px;
-      font-weight: 500;
-      text-align: center;
-      background: #f8fafc;
-      border: 1px solid #e2e8f0;
-      color: #6b7280;
-    }
-
-    .result-info {
-      background: #f0fdf4;
-      border-color: #bbf7d0;
-      color: #166534;
-    }
-
-    @media (max-width: 1024px) {
-      .main-content {
-        grid-template-columns: 1fr;
-      }
-      
-      .canvas-grid {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    @media (max-width: 768px) {
-      .container {
-        padding: 16px;
-      }
-      
-      header {
-        padding: 20px 24px;
-        flex-direction: column;
-        text-align: center;
-      }
-      
-      .badges {
-        margin-left: 0;
-        justify-content: center;
-      }
-      
-      .controls-panel,
-      .canvas-container {
-        padding: 24px;
-      }
-    }
-  </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🎨 Neural Style Transfer - ONNX + WASM</title>
+  <link rel="stylesheet" href="style.css">
+  <meta name="description" content="Real-time neural style transfer in your browser using ONNX Runtime and WebAssembly">
 </head>
+
 <body>
-  <div class="container">
-    <header>
-      <div class="logo">
-        <div class="logo-icon">🎨</div>
-        <div class="logo-text">
-          <h1>AI Style Transfer</h1>
-          <p>Transform your images with artistic AI styles</p>
-        </div>
-      </div>
-      <div class="badges">
-        <span class="badge">Rust + WASM</span>
-        <span class="badge" id="gpu-badge">Detecting GPU…</span>
-        <span class="badge">100% Client-side</span>
+  <div class="app-container">
+    <header class="header">
+      <h1>🎨 Neural Style Transfer</h1>
+      <p>Powered by ONNX Runtime + WebAssembly</p>
+      <div class="status" id="status">
+        <span class="status-dot" id="statusDot"></span>
+        <span id="statusText">Loading...</span>
       </div>
     </header>
 
     <main class="main-content">
-      <aside class="controls-panel">
-        <div class="control-group">
-          <h3>📁 Upload Image</h3>
-          <div class="file-upload">
-            <input id="file" type="file" accept="image/*" />
-            <div class="upload-icon">📸</div>
-            <div class="upload-text">Click to upload or drag & drop</div>
-          </div>
-        </div>
-
-        <div class="control-group">
-          <h3>🎭 Style Selection</h3>
-          <select id="style" class="style-selector">
-            <option value="">Choose a style...</option>
-          </select>
-        </div>
-
-        <div class="control-group">
-          <h3>⚡ Style Strength</h3>
-          <div class="strength-control">
-            <div class="strength-header">
-              <span>Intensity</span>
-              <span class="strength-value" id="strengthVal">0.75</span>
+      <div class="controls-panel">
+        <section class="upload-section">
+          <h2>📤 Upload Image</h2>
+          <div class="upload-area" id="uploadArea">
+            <div class="upload-icon">🖼️</div>
+            <div class="upload-text">
+              <strong>Click to upload</strong><br>
+              <small>or drag & drop</small>
             </div>
-            <input id="strength" type="range" min="0" max="1" step="0.01" value="0.75" class="strength-slider" />
+            <input type="file" id="fileInput" accept="image/*" hidden>
           </div>
-        </div>
 
-        <div class="action-buttons">
-          <button id="runBtn" class="btn btn-primary">🎨 Stylize</button>
-          <button id="resetBtn" class="btn btn-secondary">🔄 Reset</button>
-        </div>
+          <button id="webcamBtn" class="btn btn-secondary">
+            📷 Use Webcam
+          </button>
 
-        <button id="downloadBtn" class="btn btn-success" style="width: 100%; margin-top: 12px;">💾 Download PNG</button>
+          <div id="webcamContainer" class="webcam-container" style="display: none;">
+            <video id="webcamVideo" autoplay playsinline></video>
+            <button id="captureBtn" class="btn btn-primary">Capture</button>
+          </div>
+        </section>
 
-        <button id="webcamBtn" class="webcam-toggle">📹 Enable Webcam</button>
+        <section class="style-section">
+          <h2>🎭 Select Style</h2>
+          <div class="style-grid" id="styleGrid">
+            <!-- Will be populated by JavaScript -->
+          </div>
+        </section>
 
-        <div class="model-info">
-          <h4>Model Information</h4>
-          <pre id="modelInfo">Select a style to see model details...</pre>
-        </div>
-      </aside>
+        <section class="controls-section">
+          <h2>⚙️ Controls</h2>
 
-      <section class="canvas-container">
-        <div class="canvas-grid">
-          <div class="canvas-section">
-            <h3>📸 Original Image</h3>
-            <div class="canvas-wrapper">
-              <video id="video" autoplay playsinline style="display:none"></video>
-              <canvas id="canvasIn"></canvas>
+          <div class="control-group">
+            <label>Style Strength: <span id="strengthValue">0.8</span></label>
+            <input type="range" id="styleStrength" min="0" max="1" step="0.1" value="0.8">
+          </div>
+
+          <div class="action-buttons">
+            <button id="stylizeBtn" class="btn btn-primary" disabled>
+              ✨ Stylize
+            </button>
+            <button id="resetBtn" class="btn btn-secondary">
+              🔄 Reset
+            </button>
+            <button id="downloadBtn" class="btn btn-success" disabled>
+              💾 Download
+            </button>
+          </div>
+        </section>
+
+        <section class="performance-section">
+          <h2>📊 Performance</h2>
+          <div class="perf-stats">
+            <div class="stat-item">
+              <span>Processing Time:</span>
+              <span id="processingTime">-</span>
             </div>
-            <div id="imageInfo" class="image-info">No image uploaded yet</div>
-          </div>
-          <div class="canvas-section">
-            <h3>🎨 Stylized Result</h3>
-            <div class="canvas-wrapper">
-              <canvas id="canvasOut"></canvas>
+            <div class="stat-item">
+              <span>Model Size:</span>
+              <span id="modelSize">-</span>
             </div>
-            <div id="resultInfo" class="result-info">Ready for style transfer</div>
+          </div>
+        </section>
+      </div>
+
+      <div class="image-panels">
+        <div class="image-panel">
+          <h3>Original</h3>
+          <div class="image-container" id="originalContainer">
+            <div class="empty-state">
+              <div class="empty-icon">📷</div>
+              <p>Upload an image to start</p>
+            </div>
           </div>
         </div>
 
-        <div class="tip">
-          <p>💡 Tip: For best performance, use images under 1024px. Each style creates unique artistic transformations!</p>
+        <div class="image-panel">
+          <h3>Stylized Result</h3>
+          <div class="image-container" id="resultContainer">
+            <div class="empty-state">
+              <div class="empty-icon">🎨</div>
+              <p>Result will appear here</p>
+            </div>
+            <div class="processing-overlay" id="processingOverlay">
+              <div class="spinner"></div>
+              <div>Processing with ONNX...</div>
+            </div>
+          </div>
         </div>
-      </section>
+      </div>
     </main>
   </div>
 
-  <script type="module" src="./main.js?v=2"></script>
+  <script type="module" src="app.js"></script>
 </body>
+
 </html>

@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ONNX Runtime Test - Neural Style Transfer</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+        }
+
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+
+        .status {
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-weight: bold;
+        }
+
+        .loading {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        button {
+            padding: 12px 24px;
+            margin: 10px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .log-area {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 15px 0;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 14px;
+        }
+
+        .log-entry {
+            margin: 5px 0;
+            padding: 2px 0;
+        }
+
+        .log-error {
+            color: #dc3545;
+        }
+
+        .log-success {
+            color: #28a745;
+        }
+
+        .log-info {
+            color: #17a2b8;
+        }
+
+        .log-warning {
+            color: #ffc107;
+        }
+
+        .progress {
+            width: 100%;
+            height: 20px;
+            background: #e9ecef;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #28a745, #20c997);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🧠 ONNX Runtime Test</h1>
+
+        <div class="test-section">
+            <h2>ONNX Runtime Loading Test</h2>
+            <div id="loadStatus" class="status info">Ready to test ONNX Runtime loading</div>
+            <button class="btn-primary" onclick="testOnnxLoading()">Test ONNX Loading</button>
+            <button class="btn-secondary" onclick="clearLog()">Clear Log</button>
+            <div class="progress">
+                <div id="progressBar" class="progress-bar"></div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>ONNX Runtime API Test</h2>
+            <div id="apiStatus" class="status info">Test ONNX Runtime API functionality</div>
+            <button class="btn-success" onclick="testOnnxAPI()">Test ONNX API</button>
+        </div>
+
+        <div class="test-section">
+            <h2>Test Log</h2>
+            <div id="logArea" class="log-area">
+                <div class="log-entry log-info">Test log initialized...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let ort = null;
+        let testStartTime = 0;
+
+        function addLog(message, type = 'info') {
+            const logArea = document.getElementById('logArea');
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry log-${type}`;
+            logEntry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logArea.appendChild(logEntry);
+            logArea.scrollTop = logArea.scrollHeight;
+        }
+
+        function updateStatus(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = `status ${type}`;
+        }
+
+        function updateProgress(percent) {
+            const progressBar = document.getElementById('progressBar');
+            progressBar.style.width = `${percent}%`;
+        }
+
+        async function testOnnxLoading() {
+            testStartTime = Date.now();
+            updateStatus('loadStatus', 'Loading ONNX Runtime...', 'loading');
+            updateProgress(0);
+            addLog('=== Starting ONNX Runtime Loading Test ===', 'info');
+
+            try {
+                // Step 1: Check if already loaded
+                addLog('Step 1: Checking if ONNX Runtime is already loaded...', 'info');
+                updateProgress(10);
+
+                if (typeof window.ort !== 'undefined') {
+                    addLog('✅ ONNX Runtime already loaded', 'success');
+                    ort = window.ort;
+                    updateProgress(100);
+                    updateStatus('loadStatus', 'ONNX Runtime already available!', 'success');
+                    return;
+                }
+
+                // Step 2: Load ONNX Runtime with fallback
+                addLog('Step 2: Loading ONNX Runtime from CDN...', 'info');
+                updateProgress(20);
+
+                await loadOnnxRuntimeWithFallback();
+
+                // Step 3: Verify loading
+                addLog('Step 3: Verifying ONNX Runtime availability...', 'info');
+                updateProgress(80);
+
+                if (typeof window.ort === 'undefined') {
+                    throw new Error('ONNX Runtime script loaded but window.ort is undefined');
+                }
+
+                ort = window.ort;
+                addLog('✅ ONNX Runtime loaded successfully', 'success');
+                updateProgress(100);
+
+                const loadTime = Date.now() - testStartTime;
+                updateStatus('loadStatus', `ONNX Runtime loaded successfully in ${loadTime}ms!`, 'success');
+
+            } catch (error) {
+                addLog(`❌ Loading failed: ${error.message}`, 'error');
+                updateStatus('loadStatus', `Loading failed: ${error.message}`, 'error');
+                updateProgress(0);
+                console.error('ONNX loading error:', error);
+            }
+        }
+
+        async function loadOnnxRuntimeWithFallback() {
+            const cdnUrls = [
+                'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.18.0/dist/ort.min.js',
+                'https://unpkg.com/onnxruntime-web@1.18.0/dist/ort.min.js',
+                'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.17.0/dist/ort.min.js',
+                'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.16.0/dist/ort.min.js'
+            ];
+
+            for (let i = 0; i < cdnUrls.length; i++) {
+                try {
+                    addLog(`Attempting to load from: ${cdnUrls[i]}`, 'info');
+
+                    await new Promise((resolve, reject) => {
+                        const script = document.createElement('script');
+                        script.src = cdnUrls[i];
+
+                        script.onload = () => {
+                            addLog(`✅ Script loaded from ${cdnUrls[i]}`, 'success');
+
+                            // Wait for ort object to be available
+                            const checkOrt = (attempts = 0) => {
+                                if (typeof window.ort !== 'undefined') {
+                                    addLog('✅ ONNX Runtime object available', 'success');
+                                    resolve();
+                                } else if (attempts < 50) { // Max 5 seconds
+                                    setTimeout(() => checkOrt(attempts + 1), 100);
+                                } else {
+                                    reject(new Error('ONNX Runtime object not available after 5 seconds'));
+                                }
+                            };
+
+                            checkOrt();
+                        };
+
+                        script.onerror = () => {
+                            addLog(`❌ Failed to load from ${cdnUrls[i]}`, 'warning');
+                            reject(new Error(`Failed to load from ${cdnUrls[i]}`));
+                        };
+
+                        // Remove any existing script
+                        const existingScript = document.querySelector(`script[src="${cdnUrls[i]}"]`);
+                        if (existingScript) {
+                            existingScript.remove();
+                        }
+
+                        document.head.appendChild(script);
+                    });
+
+                    // If we get here, loading was successful
+                    return;
+
+                } catch (error) {
+                    addLog(`Attempt ${i + 1} failed: ${error.message}`, 'warning');
+                    if (i === cdnUrls.length - 1) {
+                        throw new Error('All CDN sources failed');
+                    }
+                }
+            }
+        }
+
+        async function testOnnxAPI() {
+            updateStatus('apiStatus', 'Testing ONNX Runtime API...', 'loading');
+            addLog('=== Testing ONNX Runtime API ===', 'info');
+
+            try {
+                if (!ort) {
+                    updateStatus('apiStatus', 'Please load ONNX Runtime first', 'error');
+                    return;
+                }
+
+                // Test 1: Check basic properties
+                addLog('Test 1: Checking basic properties...', 'info');
+
+                let versionInfo = 'Unknown';
+                if (ort.version) {
+                    versionInfo = ort.version;
+                } else if (ort.env && ort.env.versions) {
+                    versionInfo = JSON.stringify(ort.env.versions);
+                }
+
+                addLog(`Version info: ${versionInfo}`, 'info');
+
+                // Test 2: Check InferenceSession class
+                addLog('Test 2: Checking InferenceSession class...', 'info');
+                if (typeof ort.InferenceSession === 'function') {
+                    addLog('✅ InferenceSession class available', 'success');
+                } else {
+                    addLog('❌ InferenceSession class not available', 'error');
+                }
+
+                // Test 3: Check Tensor class
+                addLog('Test 3: Checking Tensor class...', 'info');
+                if (typeof ort.Tensor === 'function') {
+                    addLog('✅ Tensor class available', 'success');
+                } else {
+                    addLog('❌ Tensor class not available', 'error');
+                }
+
+                // Test 4: Check environment
+                addLog('Test 4: Checking environment...', 'info');
+                if (ort.env) {
+                    addLog('✅ Environment object available', 'success');
+
+                    if (ort.env.backends) {
+                        addLog(`Available backends: ${Object.keys(ort.env.backends).join(', ')}`, 'info');
+                    }
+
+                    if (ort.env.wasm) {
+                        addLog('✅ WebAssembly support available', 'success');
+                    }
+                } else {
+                    addLog('⚠️ Environment object not available', 'warning');
+                }
+
+                // Test 5: Try to create a simple tensor
+                addLog('Test 5: Testing tensor creation...', 'info');
+                try {
+                    const tensor = new ort.Tensor('float32', new Float32Array([1, 2, 3, 4]), [2, 2]);
+                    addLog('✅ Tensor creation successful', 'success');
+                    addLog(`Tensor shape: [${tensor.dims}]`, 'info');
+                } catch (error) {
+                    addLog(`❌ Tensor creation failed: ${error.message}`, 'error');
+                }
+
+                updateStatus('apiStatus', 'ONNX Runtime API test completed!', 'success');
+
+            } catch (error) {
+                addLog(`❌ API test failed: ${error.message}`, 'error');
+                updateStatus('apiStatus', `API test failed: ${error.message}`, 'error');
+                console.error('API test error:', error);
+            }
+        }
+
+        function clearLog() {
+            document.getElementById('logArea').innerHTML = '';
+            updateStatus('loadStatus', 'Ready to test ONNX Runtime loading', 'info');
+            updateStatus('apiStatus', 'Test ONNX Runtime API functionality', 'info');
+            updateProgress(0);
+        }
+
+        // Auto-run basic check
+        window.addEventListener('load', function () {
+            addLog('ONNX Runtime Test page loaded', 'info');
+            addLog('Click "Test ONNX Loading" to begin testing', 'info');
+        });
+    </script>
+</body>
+
+</html>

@@ -1,19 +1,61 @@
+# Rust
+/target/
+**/*.rs.bk
+Cargo.lock
+
+# WebAssembly
+/www/pkg/
+*.wasm
+*.wasm.map
+
+# Models (too large for git)
+/www/models/*.onnx
+/www/models/*.pb
+/www/models/*.tflite
+
+# Generated assets
+/www/icons/icon-*.png
+/www/screenshots/
+/www/previews/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
 # Dependencies
 node_modules/
-
-# Cache directories  
-.cache/
-web-app/node_modules/.cache/
-.parcel-cache/
+/www/node_modules/
 
 # Build outputs
 dist/
 build/
+*.min.js
+*.min.css
 
-# Environment files
+# Cache
+.cache/
+/.parcel-cache/
+
+# Environment
 .env
 .env.local
+.env.development.local
+.env.test.local
+.env.production.local
 
-# OS files
-.DS_Store
-Thumbs.db
+# Temporary files
+tmp/
+temp/
+*.tmp

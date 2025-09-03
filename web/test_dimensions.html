@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dimension Test - Neural Style Transfer</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+        }
+
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            background: #f8f9fa;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .status {
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: 500;
+            margin: 10px 0;
+            text-align: center;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .image-container {
+            min-height: 200px;
+            border: 2px dashed #e2e8f0;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f7fafc;
+            margin: 10px 0;
+        }
+
+        .image-container canvas {
+            max-width: 100%;
+            max-height: 200px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .info-card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .info-card h3 {
+            margin: 0 0 10px 0;
+            color: #333;
+            font-size: 1rem;
+        }
+
+        .info-card p {
+            margin: 5px 0;
+            font-size: 0.9rem;
+            color: #666;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🔧 Dimension Test</h1>
+
+        <div class="test-section">
+            <h2>Test Controls</h2>
+            <button class="btn" onclick="testWasmLoading()">Test WASM Loading</button>
+            <button class="btn" onclick="testPreprocessing()">Test Preprocessing</button>
+            <button class="btn" onclick="testTensorCreation()">Test Tensor Creation</button>
+            <button class="btn" onclick="clearResults()">Clear Results</button>
+        </div>
+
+        <div class="image-container" id="testImageContainer">
+            <div style="text-align: center; color: #718096;">
+                <div style="font-size: 2rem; margin-bottom: 10px;">🖼️</div>
+                <p>Test image will appear here</p>
+            </div>
+        </div>
+
+        <div class="info-grid" id="infoGrid">
+            <!-- Will be populated by JavaScript -->
+        </div>
+
+        <div class="test-section">
+            <h2>Status</h2>
+            <div id="status" class="status info">Ready to test dimensions</div>
+        </div>
+    </div>
+
+    <script type="module">
+        let wasmModule = null;
+        let testImage = null;
+
+        function updateStatus(message, type = 'info') {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = `status ${type}`;
+        }
+
+        function addInfoCard(title, content) {
+            const grid = document.getElementById('infoGrid');
+            const card = document.createElement('div');
+            card.className = 'info-card';
+            card.innerHTML = `
+                <h3>${title}</h3>
+                <div>${content}</div>
+            `;
+            grid.appendChild(card);
+        }
+
+        async function testWasmLoading() {
+            updateStatus('Loading WASM module...', 'info');
+
+            try {
+                // Import WASM module
+                wasmModule = await import('./pkg/neural_style_transfer.js');
+                await wasmModule.default();
+                wasmModule.init_panic_hook();
+
+                updateStatus('✅ WASM module loaded successfully!', 'success');
+                addInfoCard('WASM Status', `
+                    <p><strong>✅ Module loaded</strong></p>
+                    <p>Functions available: ${Object.keys(wasmModule).join(', ')}</p>
+                `);
+
+            } catch (error) {
+                updateStatus(`❌ WASM loading failed: ${error.message}`, 'error');
+                console.error('WASM loading error:', error);
+            }
+        }
+
+        async function testPreprocessing() {
+            if (!wasmModule) {
+                updateStatus('❌ Please load WASM module first', 'error');
+                return;
+            }
+
+            updateStatus('Testing preprocessing...', 'info');
+
+            try {
+                // Create a test image
+                const canvas = document.createElement('canvas');
+                canvas.width = 300;
+                canvas.height = 300;
+                const ctx = canvas.getContext('2d');
+
+                // Draw a test pattern
+                ctx.fillStyle = '#48bb78';
+                ctx.fillRect(0, 0, 300, 300);
+                ctx.fillStyle = '#ed8936';
+                ctx.fillRect(50, 50, 200, 200);
+                ctx.fillStyle = '#f56565';
+                ctx.fillRect(100, 100, 100, 100);
+
+                // Display test image
+                const container = document.getElementById('testImageContainer');
+                container.innerHTML = '';
+                container.appendChild(canvas);
+
+                // Get image data
+                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+                // Test preprocessing to 224x224
+                const inputData = wasmModule.preprocess_image_data(
+                    new Uint8Array(imageData.data),
+                    canvas.width,
+                    canvas.height,
+                    224
+                );
+
+                const expectedLength = 1 * 3 * 224 * 224;
+
+                updateStatus(`✅ Preprocessing successful!`, 'success');
+                addInfoCard('Preprocessing Results', `
+                    <p><strong>Input dimensions:</strong> ${canvas.width} x ${canvas.height}</p>
+                    <p><strong>Target dimensions:</strong> 224 x 224</p>
+                    <p><strong>Output data length:</strong> ${inputData.length}</p>
+                    <p><strong>Expected length:</strong> ${expectedLength}</p>
+                    <p><strong>✅ Match:</strong> ${inputData.length === expectedLength ? 'Yes' : 'No'}</p>
+                `);
+
+                testImage = { canvas, imageData, inputData };
+
+            } catch (error) {
+                updateStatus(`❌ Preprocessing failed: ${error.message}`, 'error');
+                console.error('Preprocessing error:', error);
+            }
+        }
+
+        async function testTensorCreation() {
+            if (!testImage) {
+                updateStatus('❌ Please run preprocessing first', 'error');
+                return;
+            }
+
+            updateStatus('Testing tensor creation...', 'info');
+
+            try {
+                // Check if ONNX Runtime is available
+                if (typeof window.ort === 'undefined') {
+                    throw new Error('ONNX Runtime not loaded');
+                }
+
+                // Create tensor
+                const inputTensor = new window.ort.Tensor('float32', testImage.inputData, [1, 3, 224, 224]);
+
+                updateStatus(`✅ Tensor creation successful!`, 'success');
+                addInfoCard('Tensor Results', `
+                    <p><strong>Tensor shape:</strong> [${inputTensor.dims.join(', ')}]</p>
+                    <p><strong>Data type:</strong> ${inputTensor.type}</p>
+                    <p><strong>Data length:</strong> ${inputTensor.data.length}</p>
+                    <p><strong>✅ Valid dimensions:</strong> Yes</p>
+                `);
+
+            } catch (error) {
+                updateStatus(`❌ Tensor creation failed: ${error.message}`, 'error');
+                console.error('Tensor creation error:', error);
+            }
+        }
+
+        function clearResults() {
+            document.getElementById('infoGrid').innerHTML = '';
+            document.getElementById('testImageContainer').innerHTML = `
+                <div style="text-align: center; color: #718096;">
+                    <div style="font-size: 2rem; margin-bottom: 10px;">🖼️</div>
+                    <p>Test image will appear here</p>
+                </div>
+            `;
+            updateStatus('Results cleared', 'info');
+        }
+
+        // Make functions globally available
+        window.testWasmLoading = testWasmLoading;
+        window.testPreprocessing = testPreprocessing;
+        window.testTensorCreation = testTensorCreation;
+        window.clearResults = clearResults;
+
+        // Auto-load WASM on page load
+        window.addEventListener('load', async () => {
+            updateStatus('Page loaded, ready to test', 'info');
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Style Transfer - WASM Powered</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 30px;
+            height: calc(100vh - 40px);
+        }
+
+        .controls-panel {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            overflow-y: auto;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        .image-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .upload-area {
+            border: 3px dashed #667eea;
+            border-radius: 15px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: rgba(102, 126, 234, 0.05);
+            margin-bottom: 20px;
+        }
+
+        .upload-area:hover {
+            border-color: #764ba2;
+            background: rgba(118, 75, 162, 0.05);
+        }
+
+        .upload-area.dragover {
+            border-color: #4CAF50;
+            background: rgba(76, 175, 80, 0.1);
+        }
+
+        .upload-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+            color: #667eea;
+        }
+
+        .upload-text {
+            color: #666;
+            font-size: 16px;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .image-display {
+            width: 100%;
+            max-height: 400px;
+            object-fit: contain;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .style-select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 16px;
+            margin-bottom: 25px;
+            background: white;
+        }
+
+        .slider-container {
+            margin-bottom: 30px;
+        }
+
+        .slider-label {
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .slider {
+            width: 100%;
+            height: 8px;
+            border-radius: 5px;
+            background: #ddd;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .slider::-webkit-slider-thumb {
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+        }
+
+        .slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+            border: none;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #545b62;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #1e7e34;
+        }
+
+        .btn-warning {
+            background: #fd7e14;
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background: #e55a00;
+        }
+
+        .model-info {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+            font-family: monospace;
+            font-size: 12px;
+            color: #666;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+
+        .processing {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .status-message {
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            display: none;
+        }
+
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .webcam-container {
+            position: relative;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .webcam-video {
+            width: 100%;
+            border-radius: 10px;
+        }
+
+        .capture-btn {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #ff4757;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 50px;
+            cursor: pointer;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+
+        .badge-wasm {
+            background: #e3f2fd;
+            color: #1565c0;
+        }
+
+        .badge-gpu {
+            background: #f3e5f5;
+            color: #7b1fa2;
+        }
+
+        @media (max-width: 1200px) {
+            .container {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto 1fr;
+            }
+            
+            .main-content {
+                grid-template-columns: 1fr;
+                grid-template-rows: 1fr 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="controls-panel">
+            <div class="section-title">
+                📤 Upload Image
+                <span class="badge badge-wasm">WASM</span>
+            </div>
+            
+            <div class="upload-area" id="uploadArea">
+                <div class="upload-icon">📷</div>
+                <div class="upload-text">Click to upload or drag & drop</div>
+                <input type="file" class="file-input" id="fileInput" accept="image/*">
+            </div>
+
+            <div class="webcam-container" id="webcamContainer">
+                <video class="webcam-video" id="webcamVideo" autoplay></video>
+                <button class="capture-btn" id="captureBtn">📸 Capture</button>
+            </div>
+
+            <div class="section-title">
+                🎨 Style Selection
+            </div>
+            
+            <select class="style-select" id="styleSelect">
+                <option value="">Choose a style...</option>
+            </select>
+
+            <div class="section-title">
+                ⚡ Style Strength
+            </div>
+            
+            <div class="slider-container">
+                <div class="slider-label">Intensity: <span id="intensityValue">0.75</span></div>
+                <input type="range" min="0.1" max="1" step="0.05" value="0.75" class="slider" id="intensitySlider">
+            </div>
+
+            <div class="status-message" id="statusMessage"></div>
+
+            <button class="btn btn-primary" id="stylizeBtn" disabled>
+                ✨ Stylize
+            </button>
+            
+            <button class="btn btn-secondary" id="resetBtn">
+                🔄 Reset
+            </button>
+            
+            <button class="btn btn-success" id="downloadBtn" disabled>
+                💾 Download PNG
+            </button>
+            
+            <button class="btn btn-warning" id="webcamBtn">
+                📹 Enable Webcam
+            </button>
+
+            <div class="section-title">Model Information</div>
+            <div class="model-info" id="modelInfo">
+                Loading model information...
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="image-section">
+                <div class="section-title">
+                    📸 Original Image
+                </div>
+                <div id="originalImageContainer">
+                    <div style="text-align: center; padding: 60px; color: #999;">
+                        Upload an image to get started
+                    </div>
+                </div>
+                <div class="processing" id="originalProcessing">
+                    <div class="spinner"></div>
+                    <div>Processing image...</div>
+                </div>
+            </div>
+
+            <div class="image-section">
+                <div class="section-title">
+                    🎨 Stylized Result
+                </div>
+                <div id="resultImageContainer">
+                    <div style="text-align: center; padding: 60px; color: #999;">
+                        Stylized image will appear here
+                    </div>
+                </div>
+                <div class="processing" id="resultProcessing">
+                    <div class="spinner"></div>
+                    <div>Applying style transfer...</div>
+                </div>
+                <div style="background: #e3f2fd; padding: 15px; border-radius: 10px; margin-top: 20px; font-size: 14px; color: #1565c0;">
+                    💡 <strong>Tip:</strong> Powered by WebAssembly for optimal performance. Each style creates unique artistic transformations!
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        // Import the WASM modules and ImagePreprocessor
+        import init, { Stylizer } from './pkg/stylizer.js';
+        import './js/imagePreprocessor.js';
+
+        class ModernStyleTransferApp {
+            constructor() {
+                this.originalImage = null;
+                this.styledImage = null;
+                this.webcamStream = null;
+                this.isWebcamActive = false;
+                this.styleTransfer = null;
+                this.imagePreprocessor = null;
+                this.registry = null;
+                
+                this.initializeElements();
+                this.bindEvents();
+                this.initializeWasm();
+            }
+
+            initializeElements() {
+                this.uploadArea = document.getElementById('uploadArea');
+                this.fileInput = document.getElementById('fileInput');
+                this.styleSelect = document.getElementById('styleSelect');
+                this.intensitySlider = document.getElementById('intensitySlider');
+                this.intensityValue = document.getElementById('intensityValue');
+                this.stylizeBtn = document.getElementById('stylizeBtn');
+                this.resetBtn = document.getElementById('resetBtn');
+                this.downloadBtn = document.getElementById('downloadBtn');
+                this.webcamBtn = document.getElementById('webcamBtn');
+                this.webcamContainer = document.getElementById('webcamContainer');
+                this.webcamVideo = document.getElementById('webcamVideo');
+                this.captureBtn = document.getElementById('captureBtn');
+                this.originalImageContainer = document.getElementById('originalImageContainer');
+                this.resultImageContainer = document.getElementById('resultImageContainer');
+                this.statusMessage = document.getElementById('statusMessage');
+                this.modelInfo = document.getElementById('modelInfo');
+            }
+
+            bindEvents() {
+                // File upload events
+                this.uploadArea.addEventListener('click', () => this.fileInput.click());
+                this.uploadArea.addEventListener('dragover', this.handleDragOver.bind(this));
+                this.uploadArea.addEventListener('drop', this.handleDrop.bind(this));
+                this.fileInput.addEventListener('change', this.handleFileSelect.bind(this));
+
+                // Control events
+                this.intensitySlider.addEventListener('input', this.updateIntensity.bind(this));
+                this.stylizeBtn.addEventListener('click', this.stylizeImage.bind(this));
+                this.resetBtn.addEventListener('click', this.resetAll.bind(this));
+                this.downloadBtn.addEventListener('click', this.downloadResult.bind(this));
+                this.webcamBtn.addEventListener('click', this.toggleWebcam.bind(this));
+                this.captureBtn.addEventListener('click', this.captureFromWebcam.bind(this));
+                this.styleSelect.addEventListener('change', this.handleStyleChange.bind(this));
+            }
+
+            async initializeWasm() {
+                this.showStatus('Initializing WASM module...', 'info');
+                try {
+                    // Initialize ImagePreprocessor
+                    this.imagePreprocessor = new ImagePreprocessor();
+                    
+                    // Initialize WASM
+                    await init();
+                    this.styleTransfer = new Stylizer();
+                    
+                    // Load styles
+                    await this.loadStyles();
+                    
+                    this.showStatus('WASM module ready!', 'success');
+                    this.updateModelInfo();
+                } catch (error) {
+                    this.showStatus('Error initializing WASM: ' + error.message, 'error');
+                }
+            }
+
+            async loadStyles() {
+                try {
+                    const response = await fetch('./styles.json');
+                    this.registry = await response.json();
+                    
+                    // Populate style dropdown
+                    this.styleSelect.innerHTML = '<option value="">Choose a style...</option>';
+                    for (const style of this.registry.styles) {
+                        const option = document.createElement('option');
+                        option.value = style.id;
+                        option.textContent = `${style.name} (${style.size})`;
+                        this.styleSelect.appendChild(option);
+                    }
+                } catch (error) {
+                    console.error('Failed to load styles:', error);
+                }
+            }
+
+            handleDragOver(e) {
+                e.preventDefault();
+                this.uploadArea.classList.add('dragover');
+            }
+
+            handleDrop(e) {
+                e.preventDefault();
+                this.uploadArea.classList.remove('dragover');
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    this.processFile(files[0]);
+                }
+            }
+
+            handleFileSelect(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    this.processFile(file);
+                }
+            }
+
+            async processFile(file) {
+                if (!file.type.startsWith('image/')) {
+                    this.showStatus('Please select a valid image file', 'error');
+                    return;
+                }
+
+                try {
+                    this.showStatus('Processing image...', 'info');
+                    document.getElementById('originalProcessing').style.display = 'block';
+                    
+                    // Use ImagePreprocessor
+                    const processedImage = await this.imagePreprocessor.preprocessImage(file, {
+                        targetSize: 512,
+                        maintainAspectRatio: false,
+                        normalize: false,
+                        quality: 0.9
+                    });
+                    
+                    this.originalImage = processedImage;
+                    this.displayOriginalImage(file);
+                    this.stylizeBtn.disabled = false;
+                    
+                    document.getElementById('originalProcessing').style.display = 'none';
+                    this.showStatus(`Image processed: ${file.name}`, 'success');
+                } catch (error) {
+                    document.getElementById('originalProcessing').style.display = 'none';
+                    this.showStatus('Error processing image: ' + error.message, 'error');
+                }
+            }
+
+            displayOriginalImage(file) {
+                const img = document.createElement('img');
+                img.src = this.originalImage.canvas.toDataURL();
+                img.className = 'image-display';
+                img.alt = 'Original image';
+                
+                this.originalImageContainer.innerHTML = '';
+                this.originalImageContainer.appendChild(img);
+
+                // Update file info
+                const fileInfo = document.createElement('div');
+                fileInfo.style.cssText = 'margin-top: 10px; font-size: 12px; color: #666; text-align: center;';
+                fileInfo.innerHTML = `✅ File selected: ${file.name} | Size: ${(file.size/1024).toFixed(1)} KB | Type: ${file.type}`;
+                this.originalImageContainer.appendChild(fileInfo);
+            }
+
+            updateIntensity() {
+                this.intensityValue.textContent = this.intensitySlider.value;
+            }
+
+            handleStyleChange() {
+                const selectedStyle = this.styleSelect.value;
+                if (selectedStyle && this.styleTransfer) {
+                    this.loadStyleModel(selectedStyle);
+                }
+            }
+
+            async loadStyleModel(styleId) {
+                const style = this.registry.styles.find(s => s.id === styleId);
+                if (!style) return;
+
+                try {
+                    this.showStatus(`Loading ${style.name}...`, 'info');
+                    const metaJson = JSON.stringify(style);
+                    this.styleTransfer.load_model(metaJson);
+                    this.showStatus(`${style.name} loaded!`, 'success');
+                } catch (error) {
+                    this.showStatus(`Error loading ${style.name}: ${error.message}`, 'error');
+                }
+            }
+
+            async stylizeImage() {
+                if (!this.originalImage || !this.styleTransfer) {
+                    this.showStatus('Please upload an image and select a style', 'error');
+                    return;
+                }
+
+                this.stylizeBtn.disabled = true;
+                this.downloadBtn.disabled = true;
+                document.getElementById('resultProcessing').style.display = 'block';
+                this.resultImageContainer.style.display = 'none';
+
+                try {
+                    await this.performStyleTransfer();
+                    this.showStatus('Style transfer completed!', 'success');
+                } catch (error) {
+                    this.showStatus('Error during style transfer: ' + error.message, 'error');
+                } finally {
+                    this.stylizeBtn.disabled = false;
+                    document.getElementById('resultProcessing').style.display = 'none';
+                    this.resultImageContainer.style.display = 'block';
+                }
+            }
+
+            async performStyleTransfer() {
+                const inputImageData = this.originalImage.imageData;
+                const inputRgba = this.imagePreprocessor.toUint8Array(inputImageData);
+                const { width, height } = inputImageData;
+                
+                // Ensure 512x512 for WASM
+                const targetSize = 512;
+                const outputRgba = this.styleTransfer.run_style(inputRgba, targetSize, targetSize);
+                
+                // Create output ImageData
+                const outputImageData = new ImageData(
+                    new Uint8ClampedArray(outputRgba),
+                    targetSize,
+                    targetSize
+                );
+                
+                // Create canvas and display
+                const outputCanvas = this.imagePreprocessor.createCanvas(outputImageData);
+                
+                const img = document.createElement('img');
+                img.src = outputCanvas.toDataURL();
+                img.className = 'image-display';
+                img.alt = 'Stylized image';
+                
+                this.resultImageContainer.innerHTML = '';
+                this.resultImageContainer.appendChild(img);
+                
+                // Add completion status
+                const statusDiv = document.createElement('div');
+                statusDiv.style.cssText = 'margin-top: 10px; font-size: 12px; color: #28a745; text-align: center;';
+                statusDiv.innerHTML = '✅ Style transfer completed!';
+                this.resultImageContainer.appendChild(statusDiv);
+                
+                this.styledImage = outputCanvas;
+                this.downloadBtn.disabled = false;
+            }
+
+            async toggleWebcam() {
+                if (!this.isWebcamActive) {
+                    try {
+                        this.webcamStream = await navigator.mediaDevices.getUserMedia({ 
+                            video: { width: 640, height: 480 } 
+                        });
+                        this.webcamVideo.srcObject = this.webcamStream;
+                        this.webcamContainer.style.display = 'block';
+                        this.webcamBtn.textContent = '📹 Disable Webcam';
+                        this.isWebcamActive = true;
+                        this.showStatus('Webcam activated', 'success');
+                    } catch (error) {
+                        this.showStatus('Error accessing webcam: ' + error.message, 'error');
+                    }
+                } else {
+                    if (this.webcamStream) {
+                        this.webcamStream.getTracks().forEach(track => track.stop());
+                    }
+                    this.webcamContainer.style.display = 'none';
+                    this.webcamBtn.textContent = '📹 Enable Webcam';
+                    this.isWebcamActive = false;
+                    this.showStatus('Webcam deactivated', 'info');
+                }
+            }
+
+            captureFromWebcam() {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                canvas.width = this.webcamVideo.videoWidth;
+                canvas.height = this.webcamVideo.videoHeight;
+                
+                ctx.drawImage(this.webcamVideo, 0, 0);
+                
+                // Convert to file-like object
+                canvas.toBlob(async (blob) => {
+                    const file = new File([blob], 'webcam_capture.jpg', { type: 'image/jpeg' });
+                    await this.processFile(file);
+                }, 'image/jpeg');
+            }
+
+            downloadResult() {
+                if (!this.styledImage) {
+                    this.showStatus('No stylized image to download', 'error');
+                    return;
+                }
+
+                const link = document.createElement('a');
+                link.download = `stylized_${this.styleSelect.value}_${Date.now()}.png`;
+                link.href = this.styledImage.toDataURL();
+                link.click();
+                
+                this.showStatus('Image downloaded successfully!', 'success');
+            }
+
+            resetAll() {
+                this.originalImage = null;
+                this.styledImage = null;
+                this.originalImageContainer.innerHTML = '<div style="text-align: center; padding: 60px; color: #999;">Upload an image to get started</div>';
+                this.resultImageContainer.innerHTML = '<div style="text-align: center; padding: 60px; color: #999;">Stylized image will appear here</div>';
+                this.fileInput.value = '';
+                this.stylizeBtn.disabled = true;
+                this.downloadBtn.disabled = true;
+                this.intensitySlider.value = 0.75;
+                this.intensityValue.textContent = '0.75';
+                this.styleSelect.selectedIndex = 0;
+                this.showStatus('Application reset', 'info');
+            }
+
+            updateModelInfo() {
+                if (this.registry && this.registry.styles.length > 0) {
+                    const model = this.registry.styles[0];
+                    this.modelInfo.innerHTML = `{<br>
+                        &nbsp;&nbsp;"id": "${model.id}",<br>
+                        &nbsp;&nbsp;"name": "${model.name}",<br>
+                        &nbsp;&nbsp;"size": "${model.size}",<br>
+                        &nbsp;&nbsp;"status": "ready",<br>
+                        &nbsp;&nbsp;"backend": "WebAssembly",<br>
+                        &nbsp;&nbsp;"models_available": ${this.registry.styles.length}<br>
+                    }`;
+                }
+            }
+
+            showStatus(message, type) {
+                this.statusMessage.textContent = message;
+                this.statusMessage.className = `status-message status-${type === 'info' ? 'success' : type}`;
+                this.statusMessage.style.display = 'block';
+                
+                setTimeout(() => {
+                    this.statusMessage.style.display = 'none';
+                }, type === 'error' ? 5000 : 3000);
+            }
+        }
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', () => {
+            new ModernStyleTransferApp();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neural Style Transfer - Rust + WebAssembly</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#667eea">
+</head>
+<body>
+    <div class="app-container">
+        <header class="app-header">
+            <div class="header-content">
+                <h1>🎨 Neural Style Transfer</h1>
+                <p>Rust + WebAssembly + WebGPU</p>
+                <div class="status-indicator" id="statusIndicator">
+                    <span class="status-dot"></span>
+                    <span id="statusText">Initializing...</span>
+                </div>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <div class="controls-panel">
+                <section class="upload-section">
+                    <h2>📤 Upload Image</h2>
+                    <div class="upload-area" id="uploadArea">
+                        <div class="upload-icon">🖼️</div>
+                        <div class="upload-text">
+                            <strong>Click to upload</strong> or drag & drop<br>
+                            <small>Supports PNG, JPEG • Max 2048×2048</small>
+                        </div>
+                        <input type="file" id="fileInput" accept="image/*" style="display: none;">
+                    </div>
+                    
+                    <div class="webcam-controls">
+                        <button id="webcamBtn" class="btn btn-secondary">
+                            📷 Use Webcam
+                        </button>
+                        <div id="webcamContainer" style="display: none;">
+                            <video id="webcamVideo" autoplay playsinline></video>
+                            <button id="captureBtn" class="btn btn-primary">Capture</button>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="style-section">
+                    <h2>🎭 Select Style</h2>
+                    <div class="style-grid" id="styleGrid">
+                        <!-- Style options will be populated dynamically -->
+                    </div>
+                    <div class="model-info" id="modelInfo">
+                        <p>Select a style to view model information</p>
+                    </div>
+                </section>
+
+                <section class="controls-section">
+                    <h2>⚙️ Controls</h2>
+                    
+                    <div class="control-group">
+                        <label for="styleStrength">Style Strength: <span id="strengthValue">0.8</span></label>
+                        <input type="range" id="styleStrength" min="0" max="1" step="0.1" value="0.8">
+                    </div>
+
+                    <div class="control-group">
+                        <label>
+                            <input type="checkbox" id="realtimeMode"> Real-time Preview
+                        </label>
+                    </div>
+
+                    <div class="action-buttons">
+                        <button id="stylizeBtn" class="btn btn-primary" disabled>
+                            ✨ Stylize Image
+                        </button>
+                        <button id="resetBtn" class="btn btn-secondary">
+                            🔄 Reset
+                        </button>
+                        <button id="downloadBtn" class="btn btn-success" disabled>
+                            💾 Download PNG
+                        </button>
+                    </div>
+                </section>
+
+                <section class="performance-section">
+                    <h2>📊 Performance</h2>
+                    <div class="perf-stats">
+                        <div class="stat-item">
+                            <span class="stat-label">Processing Time:</span>
+                            <span id="processingTime">-</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">FPS (Webcam):</span>
+                            <span id="fpsCounter">-</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Memory Usage:</span>
+                            <span id="memoryUsage">-</span>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <div class="image-panels">
+                <div class="image-panel">
+                    <div class="panel-header">
+                        <h3>Original Image</h3>
+                        <div class="image-info" id="originalInfo">No image loaded</div>
+                    </div>
+                    <div class="image-container" id="originalContainer">
+                        <div class="empty-state">
+                            <div class="empty-icon">📷</div>
+                            <p>Upload an image to get started</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="image-panel">
+                    <div class="panel-header">
+                        <h3>Stylized Result</h3>
+                        <div class="image-info" id="resultInfo">Processing will appear here</div>
+                    </div>
+                    <div class="image-container" id="resultContainer">
+                        <div class="empty-state">
+                            <div class="empty-icon">🎨</div>
+                            <p>Stylized image will appear here</p>
+                        </div>
+                        <div class="processing-overlay" id="processingOverlay" style="display: none;">
+                            <div class="spinner"></div>
+                            <p>Processing with WebGPU...</p>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="progressFill"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <div class="toast-container" id="toastContainer"></div>
+    </div>
+
+    <script type="module" src="app.js"></script>
+</body>
+</html>

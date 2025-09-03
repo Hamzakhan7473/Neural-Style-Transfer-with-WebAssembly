@@ -1,117 +1,90 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Minimal Main.js Test</title>
+    <title>Minimal WASM Test</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; background: #f0f0f0; }
-        .test-box { background: white; padding: 20px; margin: 20px 0; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        #console { background: #000; color: #0f0; padding: 15px; border-radius: 5px; font-family: monospace; max-height: 400px; overflow-y: auto; }
-        .error { color: #ff6b6b; }
-        .success { color: #51cf66; }
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+
+        #log {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
     </style>
 </head>
-<body>
-    <h1>🔧 Minimal Main.js Test</h1>
-    
-    <div class="test-box">
-        <h2>📁 Test: Load main.js</h2>
-        <button onclick="loadMainJS()">Load Main.js</button>
-        <div id="status"></div>
-    </div>
-    
-    <div class="test-box">
-        <h2>📊 Console Output</h2>
-        <div id="console"></div>
-    </div>
 
-    <script>
-        const consoleDiv = document.getElementById('console');
-        const statusDiv = document.getElementById('status');
-        
-        function log(message, type = 'log') {
-            const div = document.createElement('div');
-            div.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
-            div.className = type;
-            consoleDiv.appendChild(div);
-            consoleDiv.scrollTop = consoleDiv.scrollHeight;
+<body>
+    <h1>🔍 Minimal WASM Test</h1>
+    <button onclick="testImport()">Test Import</button>
+    <div id="log"></div>
+
+    <script type="module">
+        let logElement = document.getElementById('log');
+
+        function log(message) {
+            const timestamp = new Date().toLocaleTimeString();
+            logElement.textContent += `[${timestamp}] ${message}\n`;
+            console.log(message);
         }
-        
-        // Capture console output
-        const originalLog = console.log;
-        const originalError = console.error;
-        const originalWarn = console.warn;
-        
-        console.log = function(...args) {
-            originalLog.apply(console, args);
-            log(args.join(' '), 'success');
-        };
-        
-        console.error = function(...args) {
-            originalError.apply(console, args);
-            log(args.join(' '), 'error');
-        };
-        
-        console.warn = function(...args) {
-            originalWarn.apply(console, args);
-            log(args.join(' '), 'error');
-        };
-        
-        // Test loading main.js
-        async function loadMainJS() {
+
+        window.testImport = async function () {
             try {
-                statusDiv.textContent = 'Loading main.js...';
-                statusDiv.style.color = 'blue';
-                
-                log('🔄 Starting to load main.js...');
-                
-                // Create a script element
-                const script = document.createElement('script');
-                script.type = 'module';
-                script.src = './main.js?v=2';
-                
-                // Add error handling
-                script.onerror = (error) => {
-                    log('❌ Script failed to load: ' + error, 'error');
-                    statusDiv.textContent = '❌ Script failed to load';
-                    statusDiv.style.color = 'red';
-                };
-                
-                // Add load handler
-                script.onload = () => {
-                    log('✅ Script loaded successfully', 'success');
-                    statusDiv.textContent = '✅ Script loaded successfully';
-                    statusDiv.style.color = 'green';
-                };
-                
-                // Append to document
-                document.head.appendChild(script);
-                
-                log('📝 Script element added to document');
-                
+                log('=== Starting Import Test ===');
+
+                log('Step 1: Importing module...');
+                const module = await import('./pkg/neural_style_transfer.js');
+                log('✅ Module imported');
+
+                log('Step 2: Checking exports...');
+                log('Available exports: ' + Object.keys(module).join(', '));
+
+                log('Step 3: Checking default export...');
+                if (module.default) {
+                    log('✅ Default export exists');
+                    log('Default export type: ' + typeof module.default);
+
+                    if (typeof module.default === 'function') {
+                        log('✅ Default export is a function');
+
+                        log('Step 4: Calling init function...');
+                        await module.default();
+                        log('✅ Init function completed');
+
+                        log('Step 5: Testing other functions...');
+                        if (module.init_panic_hook) {
+                            module.init_panic_hook();
+                            log('✅ Panic hook set');
+                        }
+
+                        if (module.greet) {
+                            module.greet();
+                            log('✅ Greet function called');
+                        }
+
+                        log('=== All Tests Passed! ===');
+                    } else {
+                        log('❌ Default export is not a function');
+                    }
+                } else {
+                    log('❌ No default export found');
+                }
+
             } catch (error) {
-                log('❌ Error loading script: ' + error.message, 'error');
-                statusDiv.textContent = '❌ Error: ' + error.message;
-                statusDiv.style.color = 'red';
+                log(`❌ Error: ${error.message}`);
+                log(`Error stack: ${error.stack}`);
             }
-        }
-        
-        // Auto-run on page load
-        window.addEventListener('load', () => {
-            log('🚀 Page loaded, ready to test main.js loading');
-        });
-        
-        // Global error handler
-        window.addEventListener('error', (event) => {
-            log('❌ Global error: ' + event.error.message, 'error');
-            log('❌ Error details: ' + event.filename + ':' + event.lineno, 'error');
-        });
-        
-        // Unhandled promise rejection
-        window.addEventListener('unhandledrejection', (event) => {
-            log('❌ Unhandled promise rejection: ' + event.reason, 'error');
-        });
+        };
+
+        log('Minimal test page loaded');
     </script>
 </body>
+
 </html>

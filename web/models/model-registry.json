@@ -1,0 +1,82 @@
+{
+  "version": "1.2.0",
+  "models": [
+    {
+      "name": "vangogh",
+      "display_name": "Van Gogh - Starry Night",
+      "description": "Post-impressionist style with swirling brushstrokes and vibrant colors, inspired by Van Gogh's masterpiece",
+      "file_name": "vangogh-style.onnx",
+      "size_mb": 8.2,
+      "input_size": 512,
+      "input_name": "input",
+      "output_name": "output",
+      "recommended_strength": 0.8,
+      "tags": ["classic", "post-impressionist", "swirly"],
+      "preview_url": "./previews/vangogh-preview.jpg",
+      "priority": 1
+    },
+    {
+      "name": "picasso",
+      "display_name": "Picasso - Cubist",
+      "description": "Geometric abstraction with fragmented forms and multiple perspectives in the cubist tradition",
+      "file_name": "picasso-style.onnx",
+      "size_mb": 7.8,
+      "input_size": 512,
+      "input_name": "input",
+      "output_name": "output",
+      "recommended_strength": 0.9,
+      "tags": ["modern", "cubist", "geometric"],
+      "preview_url": "./previews/picasso-preview.jpg",
+      "priority": 2
+    },
+    {
+      "name": "monet",
+      "display_name": "Monet - Water Lilies",
+      "description": "Soft impressionist style with delicate color transitions and atmospheric effects",
+      "file_name": "monet-style.onnx",
+      "size_mb": 6.9,
+      "input_size": 256,
+      "input_name": "input",
+      "output_name": "output",
+      "recommended_strength": 0.7,
+      "tags": ["impressionist", "soft", "atmospheric"],
+      "preview_url": "./previews/monet-preview.jpg",
+      "priority": 3
+    },
+    {
+      "name": "cyberpunk",
+      "display_name": "Cyberpunk Neon",
+      "description": "Futuristic style with neon colors, digital glitch effects, and sci-fi aesthetics",
+      "file_name": "cyberpunk-style.onnx",
+      "size_mb": 9.1,
+      "input_size": 512,
+      "input_name": "input",
+      "output_name": "output",
+      "recommended_strength": 0.85,
+      "tags": ["modern", "digital", "neon", "sci-fi"],
+      "preview_url": "./previews/cyberpunk-preview.jpg",
+      "priority": 4
+    },
+    {
+      "name": "ukiyo",
+      "display_name": "Ukiyo-e - Japanese Woodblock",
+      "description": "Traditional Japanese woodblock print style with bold outlines and flat color areas",
+      "file_name": "ukiyo-style.onnx",
+      "size_mb": 7.2,
+      "input_size": 384,
+      "input_name": "input",
+      "output_name": "output",
+      "recommended_strength": 0.75,
+      "tags": ["traditional", "japanese", "woodblock"],
+      "preview_url": "./previews/ukiyo-preview.jpg",
+      "priority": 5
+    }
+  ],
+  "metadata": {
+    "total_size_mb": 39.2,
+    "supported_formats": ["png", "jpeg", "webp"],
+    "max_input_size": 2048,
+    "webgpu_required": true,
+    "min_webassembly_version": "1.0"
+  }
+}

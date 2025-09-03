@@ -1,82 +1,255 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simple WASM Test</title>
+    <title>Simple Test - Neural Style Transfer</title>
     <style>
-        body { font-family: Arial, sans-serif; padding: 20px; }
-        .success { color: green; }
-        .error { color: red; }
-        .info { color: blue; }
-        button { padding: 10px 20px; margin: 10px; }
-        #log { background: #f0f0f0; padding: 15px; margin: 20px 0; font-family: monospace; }
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+
+        .success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .loading {
+            background: #cce5ff;
+            color: #004085;
+        }
+
+        #log {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
     </style>
 </head>
+
 <body>
-    <h1>🧪 Simple WASM Test</h1>
-    
-    <button id="loadBtn">Load WASM Module</button>
-    <button id="testBtn" disabled>Test Basic Functions</button>
-    
-    <div id="status"></div>
+    <h1>🧪 Simple Neural Style Transfer Test</h1>
+
+    <div id="status" class="status loading">Initializing...</div>
+
+    <div>
+        <button onclick="testFullInit()">Test Full Initialization</button>
+        <button onclick="testUpload()">Test Upload Area</button>
+        <button onclick="testWebcam()">Test Webcam</button>
+    </div>
+
     <div id="log"></div>
 
     <script type="module">
-        import init, { StyleTransfer } from './pkg/neural_style_transfer.js';
-        
-        let styleTransfer = null;
-        const log = document.getElementById('log');
-        const status = document.getElementById('status');
-        
-        function addLog(message) {
-            log.textContent += message + '\n';
+        let logElement = document.getElementById('log');
+        let statusElement = document.getElementById('status');
+
+        function log(message) {
+            const timestamp = new Date().toLocaleTimeString();
+            logElement.textContent += `[${timestamp}] ${message}\n`;
+            logElement.scrollTop = logElement.scrollHeight;
             console.log(message);
         }
-        
-        document.getElementById('loadBtn').addEventListener('click', async () => {
+
+        function updateStatus(message, type = 'warning') {
+            statusElement.textContent = message;
+            statusElement.className = `status ${type}`;
+        }
+
+        // Test the exact same initialization as the main app
+        window.testFullInit = async function () {
             try {
-                addLog('🚀 Loading WASM module...');
+                log('=== Starting Full Initialization Test ===');
+
+                // Step 1: Import WASM module
+                log('Step 1: Importing WASM module...');
+                const wasmModule = await import('./pkg/neural_style_transfer.js');
+                log('✅ WASM module imported');
+                log('Available exports:', Object.keys(wasmModule));
+
+                // Step 2: Initialize WASM
+                log('Step 2: Initializing WASM...');
+                const init = wasmModule.default; // Default export is the init function
                 await init();
-                addLog('✅ WASM module loaded successfully');
-                
-                addLog('🎨 Creating StyleTransfer instance...');
-                styleTransfer = new StyleTransfer('test');
-                addLog('✅ StyleTransfer instance created');
-                
-                status.innerHTML = '<span class="success">✅ Module loaded!</span>';
-                document.getElementById('testBtn').disabled = false;
-                
+                log('✅ WASM initialized');
+
+                // Step 3: Set panic hook
+                log('Step 3: Setting panic hook...');
+                wasmModule.init_panic_hook();
+                log('✅ Panic hook set');
+
+                // Step 4: Load ONNX Runtime
+                log('Step 4: Loading ONNX Runtime...');
+                if (typeof window.ort === 'undefined') {
+                    log('Loading ONNX Runtime from CDN...');
+                    await new Promise((resolve, reject) => {
+                        const script = document.createElement('script');
+                        script.src = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.19.0/dist/ort.webgpu.min.js';
+                        script.onload = resolve;
+                        script.onerror = reject;
+                        document.head.appendChild(script);
+                    });
+                    log('✅ ONNX Runtime loaded from CDN');
+                } else {
+                    log('✅ ONNX Runtime already available');
+                }
+
+                // Step 5: Test model download
+                log('Step 5: Testing model download...');
+                const response = await fetch('./models/mosaic-9.onnx');
+                if (response.ok) {
+                    const size = response.headers.get('content-length');
+                    log(`✅ Model download successful: ${size} bytes`);
+                } else {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+
+                // Step 6: Test ONNX session creation
+                log('Step 6: Testing ONNX session creation...');
+                const modelArrayBuffer = await response.arrayBuffer();
+                const providers = [];
+                if (navigator.gpu) {
+                    providers.push('webgpu');
+                    log('✅ WebGPU available');
+                } else {
+                    log('⚠️ WebGPU not available, using CPU');
+                }
+                providers.push('wasm');
+
+                const session = await window.ort.InferenceSession.create(
+                    modelArrayBuffer,
+                    {
+                        executionProviders: providers,
+                        graphOptimizationLevel: 'all'
+                    }
+                );
+                log('✅ ONNX session created successfully');
+
+                updateStatus('Full initialization successful!', 'success');
+                log('=== Full Initialization Test Complete ===');
+
             } catch (error) {
-                addLog(`❌ Error: ${error.message}`);
-                status.innerHTML = `<span class="error">❌ Failed: ${error.message}</span>`;
+                log(`❌ Error: ${error.message}`);
+                log(`❌ Stack: ${error.stack}`);
+                updateStatus('Initialization failed', 'error');
             }
-        });
-        
-        document.getElementById('testBtn').addEventListener('click', async () => {
+        };
+
+        window.testUpload = function () {
+            log('=== Testing Upload Area ===');
+
+            // Create upload area
+            const uploadArea = document.createElement('div');
+            uploadArea.style.cssText = 'border: 2px dashed #ccc; padding: 20px; text-align: center; margin: 10px 0; cursor: pointer;';
+            uploadArea.innerHTML = '📁 Click to upload or drag & drop';
+
+            // Add file input
+            const fileInput = document.createElement('input');
+            fileInput.type = 'file';
+            fileInput.accept = 'image/*';
+            fileInput.style.display = 'none';
+
+            // Add event listeners
+            uploadArea.addEventListener('click', () => {
+                log('✅ Upload area clicked');
+                fileInput.click();
+            });
+
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                log('✅ Drag over event');
+                uploadArea.style.borderColor = '#007bff';
+            });
+
+            uploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                log('✅ Drop event');
+                uploadArea.style.borderColor = '#ccc';
+
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    log(`✅ File dropped: ${files[0].name} (${(files[0].size / 1024).toFixed(1)} KB)`);
+                }
+            });
+
+            fileInput.addEventListener('change', (e) => {
+                if (e.target.files.length > 0) {
+                    const file = e.target.files[0];
+                    log(`✅ File selected: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`);
+                }
+            });
+
+            // Add to page
+            document.body.appendChild(uploadArea);
+            document.body.appendChild(fileInput);
+
+            log('✅ Upload area created and functional');
+        };
+
+        window.testWebcam = async function () {
+            log('=== Testing Webcam ===');
+
             try {
-                addLog('🧪 Testing basic functions...');
-                
-                // Test WebGPU initialization
-                addLog('🔧 Testing WebGPU...');
-                await styleTransfer.initialize_webgpu();
-                addLog('✅ WebGPU initialized');
-                
-                // Test style strength
-                addLog('🎛️ Testing style strength...');
-                styleTransfer.set_style_strength(0.8);
-                addLog('✅ Style strength set');
-                
-                status.innerHTML = '<span class="success">✅ All tests passed!</span>';
-                
+                log('Requesting webcam access...');
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: { width: 640, height: 480 }
+                });
+
+                log('✅ Webcam access granted');
+
+                // Create video element
+                const video = document.createElement('video');
+                video.srcObject = stream;
+                video.autoplay = true;
+                video.style.cssText = 'width: 320px; height: 240px; border: 1px solid #ccc; margin: 10px 0;';
+
+                // Create capture button
+                const captureBtn = document.createElement('button');
+                captureBtn.textContent = 'Capture';
+                captureBtn.onclick = () => {
+                    log('✅ Capture button clicked');
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                    ctx.drawImage(video, 0, 0);
+                    log(`✅ Image captured: ${canvas.width}x${canvas.height}`);
+                };
+
+                document.body.appendChild(video);
+                document.body.appendChild(captureBtn);
+
             } catch (error) {
-                addLog(`❌ Test failed: ${error.message}`);
-                status.innerHTML = `<span class="error">❌ Test failed: ${error.message}</span>`;
+                log(`❌ Webcam error: ${error.message}`);
             }
-        });
-        
-        addLog('🧪 Simple test page loaded');
-        addLog('💡 Click "Load WASM Module" to begin');
+        };
+
+        // Initial log
+        log('Simple test page loaded');
+        updateStatus('Ready for testing', 'success');
     </script>
 </body>
+
 </html>

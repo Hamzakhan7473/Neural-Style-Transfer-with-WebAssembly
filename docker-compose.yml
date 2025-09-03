@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    ports:
+      - "8080:80"
+    volumes:
+      - ./www:/usr/share/nginx/html:ro
+    environment:
+      - NODE_ENV=production
+
+  dev:
+    build:
+      context: .
+      target: builder
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+      - cargo-cache:/usr/local/cargo/registry
+    working_dir: /app
+    command: ./build.sh serve
+    environment:
+      - RUST_LOG=debug
+
+volumes:
+  cargo-cache:
