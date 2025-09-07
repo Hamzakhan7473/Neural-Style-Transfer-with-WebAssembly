@@ -98,11 +98,21 @@ neural-style-transfer/
 
 ## How To Use It
 
+### Single Image Processing
 1. Upload a photo or use your webcam
 2. Pick a style (it'll download the model automatically)
 3. Slide the strength bar (0-100%)
 4. Hit "Stylize" and wait a few seconds
 5. Download your masterpiece as PNG
+
+### Batch Processing (NEW!)
+1. Click "Batch Process" to enable batch mode
+2. Select multiple images (up to 10 at once)
+3. Choose your style and strength
+4. Hit "Start Batch" and watch the progress bar
+5. Download all processed images at once
+
+Perfect for processing photo collections or creating consistent art styles across multiple images!
 
 ## When Things Go Wrong
 

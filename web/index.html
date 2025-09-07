@@ -33,9 +33,51 @@
             <input type="file" id="fileInput" accept="image/*" hidden>
           </div>
 
-          <button id="webcamBtn" class="btn btn-secondary">
-            📷 Use Webcam
-          </button>
+          <div class="upload-options">
+            <button id="webcamBtn" class="btn btn-secondary">
+              📷 Use Webcam
+            </button>
+            <button id="batchBtn" class="btn btn-info">
+              📁 Batch Process
+            </button>
+          </div>
+
+          <!-- Batch Processing Section -->
+          <div id="batchSection" class="batch-section" style="display: none;">
+            <h3>🔄 Batch Processing</h3>
+            <div class="batch-upload-area" id="batchUploadArea">
+              <div class="upload-icon">📁</div>
+              <div class="upload-text">
+                <strong>Select multiple images</strong><br>
+                <small>Process up to 10 images at once</small>
+              </div>
+              <input type="file" id="batchFileInput" accept="image/*" multiple hidden>
+            </div>
+            
+            <div id="batchQueue" class="batch-queue" style="display: none;">
+              <h4>Processing Queue (<span id="queueCount">0</span>)</h4>
+              <div id="queueList" class="queue-list"></div>
+            </div>
+
+            <div id="batchProgress" class="batch-progress" style="display: none;">
+              <div class="progress-bar">
+                <div id="progressFill" class="progress-fill"></div>
+              </div>
+              <div id="progressText" class="progress-text">Ready to process...</div>
+            </div>
+
+            <div class="batch-actions">
+              <button id="startBatchBtn" class="btn btn-primary" disabled>
+                🚀 Start Batch
+              </button>
+              <button id="downloadAllBtn" class="btn btn-success" disabled>
+                📦 Download All
+              </button>
+              <button id="clearBatchBtn" class="btn btn-secondary">
+                🗑️ Clear Queue
+              </button>
+            </div>
+          </div>
 
           <div id="webcamContainer" class="webcam-container" style="display: none;">
             <video id="webcamVideo" autoplay playsinline></video>

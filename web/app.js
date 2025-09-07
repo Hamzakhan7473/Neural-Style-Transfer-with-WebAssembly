@@ -269,6 +269,7 @@ class StyleTransferApp {
 
         this.elements = {};
         this.modelCache = new Map();
+        this.batchProcessor = null;
     }
 
     async init() {
@@ -445,6 +446,20 @@ class StyleTransferApp {
             modelSize: document.getElementById('modelSize'),
             status: document.getElementById('status'),
             statusText: document.getElementById('statusText'),
+            // Batch processing elements
+            batchBtn: document.getElementById('batchBtn'),
+            batchSection: document.getElementById('batchSection'),
+            batchUploadArea: document.getElementById('batchUploadArea'),
+            batchFileInput: document.getElementById('batchFileInput'),
+            batchQueue: document.getElementById('batchQueue'),
+            queueCount: document.getElementById('queueCount'),
+            queueList: document.getElementById('queueList'),
+            batchProgress: document.getElementById('batchProgress'),
+            progressFill: document.getElementById('progressFill'),
+            progressText: document.getElementById('progressText'),
+            startBatchBtn: document.getElementById('startBatchBtn'),
+            downloadAllBtn: document.getElementById('downloadAllBtn'),
+            clearBatchBtn: document.getElementById('clearBatchBtn'),
             statusDot: document.getElementById('statusDot')
         };
     }
@@ -584,6 +599,150 @@ class StyleTransferApp {
         // Webcam events
         this.elements.webcamBtn.addEventListener('click', this.toggleWebcam.bind(this));
         this.elements.captureBtn.addEventListener('click', this.captureFromWebcam.bind(this));
+
+        // Initialize batch processor
+        this.initializeBatchProcessor();
+    }
+
+    initializeBatchProcessor() {
+        // Import batch processor
+        import('./batch-processor.js').then(module => {
+            this.batchProcessor = new module.default(this);
+            this.setupBatchEventListeners();
+        }).catch(error => {
+            console.error('Failed to load batch processor:', error);
+        });
+    }
+
+    setupBatchEventListeners() {
+        // Batch processing events
+        this.elements.batchBtn.addEventListener('click', this.toggleBatchMode.bind(this));
+        this.elements.batchUploadArea.addEventListener('click', () => {
+            this.elements.batchFileInput.click();
+        });
+        this.elements.batchFileInput.addEventListener('change', this.handleBatchFileSelect.bind(this));
+        this.elements.startBatchBtn.addEventListener('click', this.startBatchProcessing.bind(this));
+        this.elements.downloadAllBtn.addEventListener('click', this.downloadAllResults.bind(this));
+        this.elements.clearBatchBtn.addEventListener('click', this.clearBatchQueue.bind(this));
+    }
+
+    toggleBatchMode() {
+        const batchSection = this.elements.batchSection;
+        const isVisible = batchSection.style.display !== 'none';
+        
+        if (isVisible) {
+            batchSection.style.display = 'none';
+            this.elements.batchBtn.textContent = '📁 Batch Process';
+        } else {
+            batchSection.style.display = 'block';
+            this.elements.batchBtn.textContent = '❌ Cancel Batch';
+        }
+    }
+
+    handleBatchFileSelect(event) {
+        const files = event.target.files;
+        if (files.length === 0) return;
+
+        // Limit to 10 files
+        const limitedFiles = Array.from(files).slice(0, 10);
+        
+        // Add to batch queue
+        const queueCount = this.batchProcessor.addToQueue(limitedFiles, this.currentModel?.name, this.getStyleStrength());
+        
+        // Update UI
+        this.updateBatchQueue(limitedFiles);
+        this.elements.startBatchBtn.disabled = false;
+        this.elements.queueCount.textContent = queueCount;
+        this.elements.batchQueue.style.display = 'block';
+    }
+
+    updateBatchQueue(files) {
+        const queueList = this.elements.queueList;
+        queueList.innerHTML = '';
+
+        files.forEach(file => {
+            const item = document.createElement('div');
+            item.className = 'queue-item';
+            item.innerHTML = `
+                <span class="file-icon">🖼️</span>
+                <span class="file-name">${file.name}</span>
+                <span class="file-size">${this.formatFileSize(file.size)}</span>
+            `;
+            queueList.appendChild(item);
+        });
+    }
+
+    formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    async startBatchProcessing() {
+        if (!this.batchProcessor || this.batchProcessor.queue.length === 0) {
+            alert('No images in queue');
+            return;
+        }
+
+        this.elements.startBatchBtn.disabled = true;
+        this.elements.batchProgress.style.display = 'block';
+
+        try {
+            await this.batchProcessor.startProcessing(
+                (progress) => this.updateBatchProgress(progress),
+                (results) => this.onBatchComplete(results)
+            );
+        } catch (error) {
+            console.error('Batch processing failed:', error);
+            alert('Batch processing failed: ' + error.message);
+            this.elements.startBatchBtn.disabled = false;
+        }
+    }
+
+    updateBatchProgress(progress) {
+        const progressFill = this.elements.progressFill;
+        const progressText = this.elements.progressText;
+        
+        progressFill.style.width = progress.percentage + '%';
+        progressText.textContent = `${progress.message} (${progress.current}/${progress.total})`;
+    }
+
+    onBatchComplete(results) {
+        this.elements.startBatchBtn.disabled = false;
+        this.elements.downloadAllBtn.disabled = false;
+        
+        const completed = results.filter(r => r.status === 'completed').length;
+        const failed = results.filter(r => r.status === 'failed').length;
+        
+        this.updateBatchProgress({
+            current: results.length,
+            total: results.length,
+            percentage: 100,
+            message: `Completed: ${completed}, Failed: ${failed}`,
+            isComplete: true
+        });
+    }
+
+    downloadAllResults() {
+        if (this.batchProcessor) {
+            this.batchProcessor.downloadAll();
+        }
+    }
+
+    clearBatchQueue() {
+        if (this.batchProcessor) {
+            this.batchProcessor.clearQueue();
+        }
+        
+        this.elements.queueList.innerHTML = '';
+        this.elements.queueCount.textContent = '0';
+        this.elements.batchQueue.style.display = 'none';
+        this.elements.batchProgress.style.display = 'none';
+        this.elements.startBatchBtn.disabled = true;
+        this.elements.downloadAllBtn.disabled = true;
+        this.elements.batchFileInput.value = '';
     }
 
     async selectStyle(model) {
@@ -972,6 +1131,10 @@ class StyleTransferApp {
 
     updateStrengthValue() {
         this.elements.strengthValue.textContent = this.elements.styleStrength.value;
+    }
+
+    getStyleStrength() {
+        return parseFloat(this.elements.styleStrength.value);
     }
 
     enableStylizeButton() {
