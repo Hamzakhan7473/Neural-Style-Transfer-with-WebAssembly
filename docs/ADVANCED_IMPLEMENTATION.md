@@ -1,33 +1,33 @@
-# 🚀 Advanced Neural Style Transfer Implementation
+# Advanced Neural Style Transfer Implementation
 
-## Overview
+## What This Is
 
-This is a high-performance neural style transfer implementation built with Rust, WebAssembly, WebGPU, and ONNX Runtime. It provides GPU-accelerated style transfer with professional-grade features and optimizations.
+This is a fast neural style transfer app built with Rust, WebAssembly, WebGPU, and ONNX Runtime. It uses your graphics card to make style transfer really fast.
 
-## 🏗️ Architecture
+## How It's Built
 
-### Core Components
+### The Main Parts
 
 ```
 rust-core/
 ├── src/
-│   ├── lib.rs              # Main WASM interface
+│   ├── lib.rs              # Main WebAssembly interface
 │   ├── style_transfer.rs   # ONNX Runtime integration
-│   ├── model_registry.rs   # Dynamic model management
-│   ├── image_utils.rs      # Image processing pipeline
+│   ├── model_registry.rs   # Manages AI models
+│   ├── image_utils.rs      # Image processing
 │   └── webgpu_backend.rs   # GPU acceleration
-├── Cargo.toml              # Dependencies and configuration
-└── pkg/                    # Generated WASM files
+├── Cargo.toml              # Dependencies
+└── pkg/                    # Generated WebAssembly files
 ```
 
-### Technology Stack
+### What I Used
 
-- **Rust**: Core implementation language
-- **WebAssembly**: Browser execution
-- **WebGPU**: GPU acceleration
-- **ONNX Runtime**: Neural network inference
-- **ndarray**: Tensor operations
-- **serde**: JSON serialization
+- **Rust**: The main programming language
+- **WebAssembly**: Runs in the browser
+- **WebGPU**: Uses your graphics card
+- **ONNX Runtime**: Runs the AI models
+- **ndarray**: Handles tensor operations
+- **serde**: JSON stuff
 
 ## 🎯 Key Features
 
