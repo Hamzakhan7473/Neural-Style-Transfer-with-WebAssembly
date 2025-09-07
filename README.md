@@ -6,6 +6,19 @@ Turn your photos into art. This runs completely in your browser - no uploading t
 
 You know those AI art filters that make your photos look like Van Gogh or Picasso? This is that, but it runs entirely in your browser using WebAssembly. No sending your photos to random servers.
 
+## Why I Built This
+
+I got tired of seeing "neural style transfer" tutorials that either don't work or require you to upload your photos to some random server. I wanted something that:
+
+- Actually works (most tutorials are broken)
+- Runs in your browser (no privacy concerns)
+- Uses real AI models (not fake demos)
+- Is fast enough to be useful (WebGPU acceleration)
+
+Plus, I wanted to learn WebAssembly and see if I could make Rust work in browsers. Turns out you can, and it's pretty cool when it works.
+
+This project shows that you can do serious AI work in browsers without compromising on privacy or performance. That's why I'm sharing it - because browser-based AI should be the future, not uploading everything to the cloud.
+
 ## Getting Started
 
 You'll need:
