@@ -1,103 +1,102 @@
-# 🎨 Enhanced Neural Style Transfer with WebAssembly
+# Neural Style Transfer Web App
 
-A high-performance, client-side neural style transfer application powered by Rust/WebAssembly and ONNX Runtime Web. Transform your images with 20+ artistic styles from classical masters to modern digital art.
+Turn your photos into art using AI that runs in your browser. Built with Rust, WebAssembly, and ONNX Runtime.
 
-## ✨ Features
+## What It Does
 
-- **20+ Artistic Styles**: From Van Gogh to Cyberpunk, including classical masters and modern digital art
-- **Real-time Processing**: Client-side processing with WebGPU acceleration
-- **Category Filters**: Organize styles by Classical, Modern, Experimental, Texture, and Historical
-- **Drag & Drop**: Easy image upload with drag & drop support
-- **Webcam Integration**: Capture images directly from your camera
-- **Style Strength Control**: Adjust the intensity of style transfer
-- **Model Caching**: Intelligent caching for faster subsequent loads
-- **Offline Support**: Service worker for offline capabilities
-- **Responsive Design**: Works on desktop, tablet, and mobile devices
+- **20+ Art Styles**: Van Gogh, Picasso, cyberpunk, and more
+- **Runs in Browser**: No server uploads, everything happens locally
+- **WebGPU Speed**: Uses your graphics card for faster processing
+- **Style Categories**: Organized by Classical, Modern, Experimental, etc.
+- **Easy Upload**: Drag and drop or use your webcam
+- **Adjustable Strength**: Control how strong the effect is
+- **Smart Caching**: Models download once and stay cached
+- **Works Offline**: After first load, works without internet
+- **Mobile Friendly**: Works on phones and tablets too
 
-## 🚀 Quick Start
+## Getting Started
 
-### Prerequisites
+You'll need:
+- Rust (to compile the WebAssembly)
+- Python 3 (for the dev server)
+- A modern browser (Chrome, Firefox, Safari)
 
-- **Rust** (for WASM compilation)
-- **Python 3** (for development server)
-- **Modern browser** with WebAssembly and WebGPU support
+### Running It
 
-### Installation
-
-1. **Clone the repository**:
+1. **Get the code**:
    ```bash
    git clone <repository-url>
    cd Neural-Style-Transfer-with-WebAssembly/web
    ```
 
-2. **Make scripts executable**:
+2. **Make scripts work**:
    ```bash
    chmod +x build.sh download_models.sh
    ```
 
-3. **Build and run** (downloads all models automatically):
+3. **Build and run** (downloads models automatically):
    ```bash
    ./build.sh
    ```
 
-   Or run individual steps:
+   Or do it step by step:
    ```bash
-   ./build.sh build    # Build WASM module only
-   ./build.sh models   # Download models only
-   ./build.sh serve    # Start server only
+   ./build.sh build    # Just build the WASM
+   ./build.sh models   # Just download models
+   ./build.sh serve    # Just start server
    ```
 
 4. **Open your browser** and go to `http://localhost:8000`
 
-## 🎭 Available Styles
+## The Art Styles
 
-### Classical Artists
-- **Van Gogh - Starry Night**: Swirling brushstrokes and vibrant night sky
-- **Picasso - Cubist Style**: Geometric fragmentation and multiple perspectives
-- **Monet - Water Lilies**: Soft impressionist colors and light reflections
-- **Kandinsky - Abstract Composition**: Bold abstract shapes and explosive colors
-- **Leonardo da Vinci**: Renaissance master techniques and sfumato
-- **Hokusai - Great Wave**: Traditional Japanese ukiyo-e woodblock prints
-- **Munch - The Scream**: Expressionist anxiety and emotional intensity
+### Classic Artists
+- **Van Gogh - Starry Night**: Those swirly brushstrokes and bright night sky
+- **Picasso - Cubist**: Weird geometric shapes and multiple angles
+- **Monet - Water Lilies**: Soft, dreamy colors and light effects
+- **Kandinsky - Abstract**: Bold shapes and crazy colors
+- **Leonardo da Vinci**: Renaissance techniques and smooth blending
+- **Hokusai - Great Wave**: Traditional Japanese woodblock style
+- **Munch - The Scream**: Expressionist anxiety and intense emotions
 
 ### Modern & Experimental
-- **Cyberpunk Neon**: Futuristic neon lights and digital aesthetics
-- **Anime Illustration**: Japanese animation art style
-- **Street Art Graffiti**: Urban street art and graffiti aesthetics
-- **Digital Glitch Art**: Computer glitch and digital distortion effects
+- **Cyberpunk Neon**: Futuristic neon lights and digital vibes
+- **Anime Style**: Japanese animation art
+- **Street Art Graffiti**: Urban street art and graffiti looks
+- **Digital Glitch**: Computer glitch and distortion effects
 
 ### Texture & Patterns
-- **Classic Oil Painting**: Traditional oil painting brush techniques
-- **Watercolor Wash**: Soft watercolor bleeding and transparency effects
-- **Classical Mosaic**: Colorful geometric mosaic patterns
+- **Classic Oil Painting**: Traditional oil painting techniques
+- **Watercolor Wash**: Soft watercolor bleeding effects
+- **Classical Mosaic**: Colorful geometric tile patterns
 
 ### Historical Styles
-- **Gothic Dark Art**: Medieval gothic architecture and dark themes
-- **Steampunk Mechanical**: Victorian-era industrial and mechanical aesthetics
+- **Gothic Dark Art**: Medieval gothic and dark themes
+- **Steampunk**: Victorian-era industrial and mechanical stuff
 - **Art Nouveau**: Flowing organic forms and decorative elements
 
-### Official ONNX Models
-- **Pop Art Candy**: Bright, vibrant candy-like colors
-- **Rain Princess**: Dreamy impressionist rainy atmosphere
+### The Working Models (ONNX)
+- **Pop Art Candy**: Bright, almost neon colors
+- **Rain Princess**: Dreamy rainy day atmosphere
 - **Udnie - Abstract**: Bold abstract expressionist forms
-- **Neo-Impressionist Pointilism**: Classic pointillist painting technique
+- **Pointilism**: Classic dots-everywhere painting style
 
-## 🛠️ Technical Architecture
+## How It's Built
 
 ### Frontend
-- **HTML5/CSS3**: Modern, responsive interface
-- **JavaScript (ES6+)**: Application logic and UI interactions
-- **WebAssembly**: High-performance image processing in Rust
-- **ONNX Runtime Web**: Neural network inference with WebGPU acceleration
+- **HTML5/CSS3**: The web interface
+- **JavaScript**: Handles the UI and interactions
+- **WebAssembly**: Fast image processing in Rust
+- **ONNX Runtime Web**: Runs the AI models with WebGPU
 
-### Backend (Client-side)
-- **Rust**: Image preprocessing and postprocessing
-- **WebAssembly**: Compiled Rust code for browser execution
-- **ONNX Runtime**: Neural network inference engine
+### Backend (All Client-side)
+- **Rust**: Does the heavy image processing
+- **WebAssembly**: Rust compiled for the browser
+- **ONNX Runtime**: The AI model engine
 
-### Models
-- **Fast Neural Style Transfer**: Optimized for real-time processing
-- **ONNX Format**: Cross-platform model format
+### The AI Models
+- **Fast Neural Style Transfer**: Optimized for speed
+- **ONNX Format**: Works across different platforms
 - **Multiple Sources**: Official ONNX repository, Hugging Face, community models
 
 ## 📁 Project Structure
