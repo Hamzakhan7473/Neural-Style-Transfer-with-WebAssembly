@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧪 Batch Processing Test - Neural Style Transfer</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            border-radius: 16px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+        .test-result {
+            padding: 10px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+        .test-pass {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .test-fail {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <header class="header">
+            <h1>🧪 Batch Processing Test</h1>
+            <p>Testing the new batch processing functionality</p>
+        </header>
+
+        <div class="test-section">
+            <h2>📋 Test Checklist</h2>
+            <div id="testResults">
+                <div class="test-result" id="test1">
+                    <strong>Test 1:</strong> Batch processor class loads correctly
+                </div>
+                <div class="test-result" id="test2">
+                    <strong>Test 2:</strong> File queue management works
+                </div>
+                <div class="test-result" id="test3">
+                    <strong>Test 3:</strong> Progress tracking functions
+                </div>
+                <div class="test-result" id="test4">
+                    <strong>Test 4:</strong> UI elements are properly initialized
+                </div>
+                <div class="test-result" id="test5">
+                    <strong>Test 5:</strong> Batch processing integration works
+                </div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>🔧 Manual Tests</h2>
+            <p>Use the main application to test these features:</p>
+            <ul>
+                <li>✅ Click "Batch Process" button to toggle batch mode</li>
+                <li>✅ Select multiple images (up to 10)</li>
+                <li>✅ Verify queue displays correctly</li>
+                <li>✅ Start batch processing</li>
+                <li>✅ Monitor progress bar</li>
+                <li>✅ Download all processed images</li>
+                <li>✅ Clear queue functionality</li>
+            </ul>
+        </div>
+
+        <div class="test-section">
+            <h2>📊 Test Results</h2>
+            <div id="testSummary">
+                <p>Running tests...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Simple test runner for batch processing functionality
+        class BatchProcessingTester {
+            constructor() {
+                this.tests = [];
+                this.results = {};
+            }
+
+            async runTests() {
+                console.log('Starting batch processing tests...');
+                
+                // Test 1: Batch processor class loads
+                await this.testBatchProcessorLoad();
+                
+                // Test 2: File queue management
+                await this.testFileQueueManagement();
+                
+                // Test 3: Progress tracking
+                await this.testProgressTracking();
+                
+                // Test 4: UI elements
+                await this.testUIElements();
+                
+                // Test 5: Integration
+                await this.testIntegration();
+                
+                this.displayResults();
+            }
+
+            async testBatchProcessorLoad() {
+                try {
+                    const module = await import('./batch-processor.js');
+                    const BatchProcessor = module.default;
+                    
+                    if (typeof BatchProcessor === 'function') {
+                        this.updateTestResult('test1', true, 'Batch processor class loads correctly');
+                    } else {
+                        this.updateTestResult('test1', false, 'Batch processor class not found');
+                    }
+                } catch (error) {
+                    this.updateTestResult('test1', false, `Error loading batch processor: ${error.message}`);
+                }
+            }
+
+            async testFileQueueManagement() {
+                try {
+                    const module = await import('./batch-processor.js');
+                    const BatchProcessor = module.default;
+                    
+                    // Create mock app
+                    const mockApp = {
+                        applyStyleTransfer: async () => ({ width: 100, height: 100, data: new Uint8ClampedArray(40000) })
+                    };
+                    
+                    const processor = new BatchProcessor(mockApp);
+                    
+                    // Test adding files to queue
+                    const mockFiles = [
+                        { name: 'test1.jpg', type: 'image/jpeg', size: 1024 },
+                        { name: 'test2.png', type: 'image/png', size: 2048 }
+                    ];
+                    
+                    const queueCount = processor.addToQueue(mockFiles, 'test_style', 0.8);
+                    
+                    if (queueCount === 2) {
+                        this.updateTestResult('test2', true, 'File queue management works correctly');
+                    } else {
+                        this.updateTestResult('test2', false, `Expected 2 files, got ${queueCount}`);
+                    }
+                } catch (error) {
+                    this.updateTestResult('test2', false, `Error testing file queue: ${error.message}`);
+                }
+            }
+
+            async testProgressTracking() {
+                try {
+                    const module = await import('./batch-processor.js');
+                    const BatchProcessor = module.default;
+                    
+                    const mockApp = {
+                        applyStyleTransfer: async () => ({ width: 100, height: 100, data: new Uint8ClampedArray(40000) })
+                    };
+                    
+                    const processor = new BatchProcessor(mockApp);
+                    
+                    let progressCalled = false;
+                    const progressCallback = (progress) => {
+                        progressCalled = true;
+                        console.log('Progress:', progress);
+                    };
+                    
+                    // Test progress callback
+                    processor.updateProgress(1, 5, 'Test progress');
+                    
+                    if (progressCalled) {
+                        this.updateTestResult('test3', true, 'Progress tracking functions correctly');
+                    } else {
+                        this.updateTestResult('test3', false, 'Progress callback not working');
+                    }
+                } catch (error) {
+                    this.updateTestResult('test3', false, `Error testing progress: ${error.message}`);
+                }
+            }
+
+            async testUIElements() {
+                try {
+                    // Check if main app elements exist
+                    const requiredElements = [
+                        'batchBtn', 'batchSection', 'batchUploadArea', 
+                        'batchFileInput', 'batchQueue', 'queueCount',
+                        'queueList', 'batchProgress', 'progressFill',
+                        'progressText', 'startBatchBtn', 'downloadAllBtn', 'clearBatchBtn'
+                    ];
+                    
+                    const missingElements = requiredElements.filter(id => !document.getElementById(id));
+                    
+                    if (missingElements.length === 0) {
+                        this.updateTestResult('test4', true, 'All UI elements are properly initialized');
+                    } else {
+                        this.updateTestResult('test4', false, `Missing elements: ${missingElements.join(', ')}`);
+                    }
+                } catch (error) {
+                    this.updateTestResult('test4', false, `Error testing UI elements: ${error.message}`);
+                }
+            }
+
+            async testIntegration() {
+                try {
+                    // Test if the main app can initialize batch processing
+                    if (typeof StyleTransferApp !== 'undefined') {
+                        this.updateTestResult('test5', true, 'Batch processing integration works');
+                    } else {
+                        this.updateTestResult('test5', false, 'Main app not available for integration test');
+                    }
+                } catch (error) {
+                    this.updateTestResult('test5', false, `Error testing integration: ${error.message}`);
+                }
+            }
+
+            updateTestResult(testId, passed, message) {
+                const element = document.getElementById(testId);
+                if (element) {
+                    element.className = `test-result ${passed ? 'test-pass' : 'test-fail'}`;
+                    element.innerHTML = `<strong>Test ${testId.slice(-1)}:</strong> ${message}`;
+                }
+                
+                this.results[testId] = { passed, message };
+            }
+
+            displayResults() {
+                const totalTests = Object.keys(this.results).length;
+                const passedTests = Object.values(this.results).filter(r => r.passed).length;
+                const failedTests = totalTests - passedTests;
+                
+                const summary = document.getElementById('testSummary');
+                summary.innerHTML = `
+                    <div class="test-result ${failedTests === 0 ? 'test-pass' : 'test-fail'}">
+                        <strong>Test Summary:</strong> ${passedTests}/${totalTests} tests passed
+                        ${failedTests > 0 ? ` (${failedTests} failed)` : ''}
+                    </div>
+                    <p><strong>Status:</strong> ${failedTests === 0 ? '✅ All tests passed!' : '❌ Some tests failed'}</p>
+                `;
+            }
+        }
+
+        // Run tests when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            const tester = new BatchProcessingTester();
+            tester.runTests();
+        });
+    </script>
+</body>
+</html>
