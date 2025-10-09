@@ -1,0 +1,36 @@
+# OBS-Diff Model Pruning Dependencies
+
+# Core dependencies
+torch>=2.0.0
+numpy>=1.21.0
+onnx>=1.14.0
+onnxruntime>=1.15.0
+
+# Model conversion
+tf2onnx>=1.14.0
+onnxmltools>=1.11.0
+
+# Quantization (optional but recommended)
+onnxruntime-tools>=1.7.0
+
+# Optimization
+onnx-simplifier>=0.4.0
+
+# Data loading and preprocessing
+Pillow>=9.0.0
+opencv-python>=4.7.0
+
+# Utilities
+tqdm>=4.65.0
+scipy>=1.10.0
+
+# Development and testing
+pytest>=7.3.0
+pytest-cov>=4.1.0
+
+# Optional: TensorFlow for model conversion
+# tensorflow>=2.12.0
+
+# Optional: Additional optimization tools
+# pytorch-quantization>=2.1.0
+
