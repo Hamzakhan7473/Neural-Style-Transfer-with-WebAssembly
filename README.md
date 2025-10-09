@@ -72,7 +72,8 @@ Our research evaluated multiple neural style transfer architectures:
 #### Quantization Strategy
 - **INT8 Quantization**: 4x reduction in model size with minimal quality loss
 - **Dynamic Quantization**: Runtime optimization based on input characteristics
-- **Model Pruning**: Removal of redundant parameters without affecting output quality
+- **OBS-Diff Pruning**: One-shot block-structured pruning for 50-60% parameter reduction
+- **Model Compression**: Combined pruning and quantization achieving 4-5x total compression
 
 ## Results
 
@@ -218,6 +219,10 @@ python -m http.server 8000
 ```bash
 # Download pre-trained models
 ./scripts/download_models.sh
+
+# Optional: Prune models using OBS-Diff for better performance
+pip install -r tools/requirements_obs_diff.txt
+./scripts/prune_models.sh
 ```
 
 ### API Usage
@@ -278,9 +283,12 @@ await batchProcessor.startProcessing(
 - **Dynamic Quantization**: Runtime precision adjustment based on input
 
 #### Pruning Strategies
+- **OBS-Diff Pruning**: One-shot block-structured pruning using Fisher Information
 - **Magnitude-Based Pruning**: Remove weights with smallest absolute values
 - **Structured Pruning**: Remove entire channels or layers
 - **Knowledge Distillation**: Train smaller models to mimic larger ones
+
+See [`docs/OBS_DIFF_INTEGRATION.md`](docs/OBS_DIFF_INTEGRATION.md) for detailed documentation on OBS-Diff implementation.
 
 ## Future Work
 
@@ -328,6 +336,7 @@ Future research should focus on expanding the range of supported AI models and o
 - [WebGPU Specification](https://www.w3.org/TR/webgpu/)
 - [Neural Style Transfer: A Review](https://arxiv.org/abs/1705.04058)
 - [Fast Neural Style Transfer](https://arxiv.org/abs/1603.08155)
+- [OBS-Diff: Accurate Pruning for Diffusion Models](https://github.com/Alrightlone/OBS-Diff) - Zhu et al., Westlake University
 
 ## License
 
